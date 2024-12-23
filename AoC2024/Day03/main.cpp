@@ -1,26 +1,22 @@
 #include <iostream>
 #include <fstream>
 
-#define USE_NUMBERS '#'
 #define STAGES_SIZE 8
+const char USE_NUMBERS = '#';
 
 void Reset(int* stageIndex, int* firstNum, int* secondNum)
 {
     *stageIndex = 0;
     *firstNum = 0;
     *secondNum = 0;
-    // printf("  Stages reset.\n");
 }
 
 void Process(int* total, int* firstNum, int* secondNum)
 {
-    // printf("  First Num: %d\n", *firstNum);
-    // printf("  Second Num: %d\n", *secondNum);
     *total += *firstNum * *secondNum;
-    // printf("  New  Total: %d\n", *total);
 }
 
-int main()
+int main_01()
 {
     std::ifstream file("input.txt", std::ios_base::in);
 
@@ -33,8 +29,6 @@ int main()
     char ch = 0;
     while ((ch = file.get()) >= 0)
     {
-        // printf("Current character: %c\n", ch);
-
         char currentStage = stages[stageIndex];
         bool isUsingNumbers = currentStage == USE_NUMBERS;
 
@@ -50,11 +44,6 @@ int main()
                 currentStage = stages[++stageIndex]; // advance current stage
                 isUsingNumbers = false; // updated due to stage advancing
                 shouldCollectDigits = false;
-
-                // if (isFirstNumber)
-                //     printf("  First Number: %d\n", firstNum);
-                // else
-                //     printf("  Second Number: %d\n", secondNum);
             }
 
             if (shouldCollectDigits)
@@ -81,8 +70,6 @@ int main()
             }
             else // if (ch == currentStage)
             {
-                // printf("  Completed stage: %c\n", stages[stageIndex]);
-                
                 ++stageIndex;
 
                 if (stageIndex >= STAGES_SIZE)
@@ -92,10 +79,20 @@ int main()
                 }
             }
         }
-
-        // printf("\n");
     }
 
     printf("Grand total: %d\n", totalSum);
+    return 0;
+}
+
+int main_02()
+{
+    return 0;
+}
+
+int main()
+{
+    // main_01();
+    main_02();
     return 0;
 }
