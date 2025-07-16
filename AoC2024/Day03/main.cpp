@@ -42,7 +42,7 @@ int main_01()
             if (ch == stages[stageIndex + 1])
             {
                 currentStage = stages[++stageIndex]; // advance current stage
-                isUsingNumbers = false; // updated due to stage advancing
+                isUsingNumbers = false;              // updated due to stage advancing
                 shouldCollectDigits = false;
             }
 
@@ -164,7 +164,7 @@ struct NumberSequence : public Sequence
             if (ch == stages[stageIndex + 1])
             {
                 currentStage = stages[++stageIndex]; // advance current stage
-                isUsingNumbers = false; // updated due to stage advancing
+                isUsingNumbers = false;              // updated due to stage advancing
                 shouldCollectDigits = false;
             }
 
@@ -186,7 +186,7 @@ struct NumberSequence : public Sequence
         if (!isUsingNumbers)
         {
             Sequence::Process(ch);
-        }    
+        }
     }
 
     virtual void Reset() override
@@ -197,11 +197,10 @@ struct NumberSequence : public Sequence
     }
 };
 
-
 int main_02()
 {
     bool shouldMultiply = true;
-    
+
     NumberSequence mul({'m', 'u', 'l', '(', USE_NUMBERS, ',', USE_NUMBERS, ')'});
     Sequence enable("do()", [&shouldMultiply]{ shouldMultiply = true; });
     Sequence disable("don't()", [&shouldMultiply]{ shouldMultiply = false; });
@@ -213,12 +212,12 @@ int main_02()
         printf("Current character: %c\n", ch);
         enable.Process(ch);
         disable.Process(ch);
-        
+
         if (shouldMultiply)
         {
             mul.Process(ch);
-        }   
-        
+        }
+
         printf("\n");
     }
 
