@@ -205,9 +205,14 @@ int main_02()
     Sequence enable("do()", [&shouldMultiply]{ shouldMultiply = true; });
     Sequence disable("don't()", [&shouldMultiply]{ shouldMultiply = false; });
 
-    std::string line("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
+    std::fstream file("input.txt");
+    if (!file)
+    {
+        return -1;
+    }
 
-    for (char ch : line)
+    char ch;
+    while ( (ch = file.get()) != EOF)
     {
         printf("Current character: %c\n", ch);
         enable.Process(ch);
