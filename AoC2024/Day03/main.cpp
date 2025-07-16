@@ -132,7 +132,7 @@ struct Sequence
         }
     }
 
-    void Reset()
+    virtual void Reset()
     {
         stageIndex = 0;
     }
@@ -189,7 +189,7 @@ struct NumberSequence : public Sequence
         }    
     }
 
-    void Reset()
+    virtual void Reset() override
     {
         Sequence::Reset();
         firstNumber = 0;
