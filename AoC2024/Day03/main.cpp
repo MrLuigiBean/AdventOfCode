@@ -107,6 +107,18 @@ struct Sequence
         printf("Initialised with |%s|\n", stages);
     }
 
+    virtual void Process(char ch)
+    {
+        if (ch == stages[stageIndex])
+        {
+            IncrementStage();
+        }
+        else
+        {
+            Reset();
+        }
+    }
+
     void IncrementStage()
     {
         ++stageIndex;
@@ -115,6 +127,7 @@ struct Sequence
             if (onEnd != nullptr)
             {
                 onEnd();
+                Reset();
             }
         }
     }
@@ -134,7 +147,46 @@ struct NumberSequence : public Sequence
     NumberSequence(std::string initList) :
         Sequence(initList, [this]{ total += firstNumber * secondNumber; })
     {
+    }
 
+    virtual void Process(char ch) override
+    {
+        char currentStage = stages[stageIndex];
+        bool isUsingNumbers = currentStage == USE_NUMBERS;
+
+        if (isUsingNumbers)
+        {
+            bool isFirstNumber = stageIndex < 5; // sorry for the hack...
+
+            bool shouldCollectDigits = true;
+
+            // Terminate digit collection if current char belongs to the next stage.
+            if (ch == stages[stageIndex + 1])
+            {
+                currentStage = stages[++stageIndex]; // advance current stage
+                isUsingNumbers = false; // updated due to stage advancing
+                shouldCollectDigits = false;
+            }
+
+            if (shouldCollectDigits)
+            {
+                if (!isdigit(ch))
+                {
+                    Reset();
+                    return;
+                }
+
+                if (isFirstNumber)
+                    firstNumber = firstNumber * 10 + (ch - '0');
+                else
+                    secondNumber = secondNumber * 10 + (ch - '0');
+            }
+        }
+
+        if (!isUsingNumbers)
+        {
+            Sequence::Process(ch);
+        }    
     }
 
     void Reset()
@@ -153,6 +205,24 @@ int main_02()
     NumberSequence mul({'m', 'u', 'l', '(', USE_NUMBERS, ',', USE_NUMBERS, ')'});
     Sequence enable("do()", [&shouldMultiply]{ shouldMultiply = true; });
     Sequence disable("don't()", [&shouldMultiply]{ shouldMultiply = false; });
+
+    std::string line("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
+
+    for (char ch : line)
+    {
+        printf("Current character: %c\n", ch);
+        enable.Process(ch);
+        disable.Process(ch);
+        
+        if (shouldMultiply)
+        {
+            mul.Process(ch);
+        }   
+        
+        printf("\n");
+    }
+
+    printf("mul.total: %d\n", mul.total);
 
     return 0;
 }
