@@ -85,8 +85,75 @@ int main_01()
     return 0;
 }
 
+#include <functional>
+
+struct Sequence
+{
+    int stageIndex = 0;
+    char stages[32] = {'\0'};
+
+    using CallBackType = std::function<void(void)>;
+    CallBackType onEnd;
+
+    Sequence(std::string initChars, CallBackType callback = nullptr)
+    {
+        for (size_t i = 0; i < initChars.size(); ++i)
+        {
+            stages[i] = initChars[i];
+        }
+
+        onEnd = callback;
+
+        printf("Initialised with |%s|\n", stages);
+    }
+
+    void IncrementStage()
+    {
+        ++stageIndex;
+        if (stages[stageIndex] == '\0')
+        {
+            if (onEnd != nullptr)
+            {
+                onEnd();
+            }
+        }
+    }
+
+    void Reset()
+    {
+        stageIndex = 0;
+    }
+};
+
+struct NumberSequence : public Sequence
+{
+    int total = 0;
+    int firstNumber = 0;
+    int secondNumber = 0;
+
+    NumberSequence(std::string initList) :
+        Sequence(initList, [this]{ total += firstNumber * secondNumber; })
+    {
+
+    }
+
+    void Reset()
+    {
+        Sequence::Reset();
+        firstNumber = 0;
+        secondNumber = 0;
+    }
+};
+
+
 int main_02()
 {
+    bool shouldMultiply = true;
+    
+    NumberSequence mul({'m', 'u', 'l', '(', USE_NUMBERS, ',', USE_NUMBERS, ')'});
+    Sequence enable("do()", [&shouldMultiply]{ shouldMultiply = true; });
+    Sequence disable("don't()", [&shouldMultiply]{ shouldMultiply = false; });
+
     return 0;
 }
 
