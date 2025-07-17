@@ -3,6 +3,20 @@
 #include <string>
 #include <vector>
 
+struct Direction
+{
+	const static int
+		MT = 0b0000, // it sounds like 'empty' lol
+		N = 0b0001,
+		S = 0b0010,
+		W = 0b0100,
+		E = 0b1000,
+		NW = N | W,
+		NE = N | E,
+		SW = S | W,
+		SE = S | E;
+};
+
 int main(int argc, char* argv[])
 {
 	if (argc != 2)
@@ -24,7 +38,7 @@ int main(int argc, char* argv[])
 	{
 		line.pop_back();
 	}
-	
+
 	int gridSideLength = line.length();
 	int gridSize = gridSideLength * gridSideLength;
 	file.seekg(0);
@@ -49,10 +63,46 @@ int main(int argc, char* argv[])
 		int row = i / gridSideLength;
 		int col = i % gridSideLength;
 		char ch = grid[row][col];
-
-		if (ch == sequence[progress])
+		if (i > 0 && (i - 1) / gridSideLength != row)
 		{
+			printf("\n");
 		}
+		// printf("Current Character: %c\n", ch);
+		(void)ch;
+
+		auto isNeighbourValid = [gridSideLength](int index)
+			{
+				int allowedDirections = Direction::MT;
+				int gridSize = gridSideLength * gridSideLength;
+
+				// is top ok?
+				if (gridSideLength <= index && index <= gridSize - 1)
+					allowedDirections |= Direction::N;
+
+				// is bottom ok?
+				if (0 <= index && index <= (gridSize - 1 - gridSideLength))
+					allowedDirections |= Direction::S;
+
+				// is left ok?
+				if (index % gridSideLength != 0)
+					allowedDirections |= Direction::W;
+
+				// is right ok?
+				if (index % gridSideLength != gridSideLength - 1)
+					allowedDirections |= Direction::E;
+				printf("%x", allowedDirections);
+			};
+
+		// if I find the first character,
+		// for all directions
+		//   is neighbour valid?
+		// 	   if so, search in that direction
+
+		isNeighbourValid(i);
+		(void)SEQUENCE_LENGTH;
+		(void)sequence;
+		(void)total;
+		(void)progress;
 	}
 
 	return 0;
