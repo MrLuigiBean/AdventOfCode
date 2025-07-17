@@ -33,11 +33,61 @@ struct Direction
 		case SW: return "Southwest";
 		case SE: return "Southeast";
 		default: return "";
-		}		
+		}
 	}
+
+	static int gridSideLength;
+
+	static int FindValidDirections(int index)
+	{
+		int allowedDirections = Direction::MT;
+		int gridSize = gridSideLength * gridSideLength;
+
+		// is top ok?
+		if (gridSideLength <= index && index <= gridSize - 1)
+			allowedDirections |= Direction::N;
+
+		// is bottom ok?
+		if (0 <= index && index <= (gridSize - 1 - gridSideLength))
+			allowedDirections |= Direction::S;
+
+		// is left ok?
+		if (index % gridSideLength != 0)
+			allowedDirections |= Direction::W;
+
+		// is right ok?
+		if (index % gridSideLength != gridSideLength - 1)
+			allowedDirections |= Direction::E;
+
+		return allowedDirections;
+	};
+
+	// if `directionToCheck` has a '1' where `validDirections` doesn't, this will return false
+	inline static bool IsValidDirection(int validDirections, int directionToCheck)
+	{
+		return (directionToCheck | validDirections) == validDirections;
+	};
+
+	static int GetNeighbour(int index, int direction)
+	{
+		int neighbourIndex = index;
+
+		if (direction & Direction::N)
+			neighbourIndex -= gridSideLength;
+		if (direction & Direction::S)
+			neighbourIndex += gridSideLength;
+		if (direction & Direction::W)
+			neighbourIndex--;
+		if (direction & Direction::E)
+			neighbourIndex++;
+
+		return neighbourIndex;
+	};
 };
 
-int main(int argc, char* argv[])
+int Direction::gridSideLength = 0;
+
+int main_01(int argc, char* argv[])
 {
 	if (argc != 2)
 	{
@@ -61,6 +111,7 @@ int main(int argc, char* argv[])
 	}
 
 	int gridSideLength = line.length();
+	Direction::gridSideLength = gridSideLength;
 	int gridSize = gridSideLength * gridSideLength;
 	file.seekg(0);
 
@@ -83,74 +134,27 @@ int main(int argc, char* argv[])
 		int row = idx / gridSideLength;
 		int col = idx % gridSideLength;
 		char ch = grid[row][col];
-		// if (idx > 0 && (idx - 1) / gridSideLength != row) printf("\n"); // separates every row
 		printf("Current Character: %c\n", ch);
 		printf("Current Index: %d\n", idx);
 
 		if (ch != sequence[0])
 			continue;
 
-		auto FindValidDirections = [gridSideLength](int index)
-			{
-				int allowedDirections = Direction::MT;
-				int gridSize = gridSideLength * gridSideLength;
-
-				// is top ok?
-				if (gridSideLength <= index && index <= gridSize - 1)
-					allowedDirections |= Direction::N;
-
-				// is bottom ok?
-				if (0 <= index && index <= (gridSize - 1 - gridSideLength))
-					allowedDirections |= Direction::S;
-
-				// is left ok?
-				if (index % gridSideLength != 0)
-					allowedDirections |= Direction::W;
-
-				// is right ok?
-				if (index % gridSideLength != gridSideLength - 1)
-					allowedDirections |= Direction::E;
-
-				return allowedDirections;
-			};
-
-		auto FindNeighbour = [gridSideLength](int index, int direction)
-			{
-				int neighbourIndex = index;
-
-				if (direction & Direction::N)
-					neighbourIndex -= gridSideLength;
-				if (direction & Direction::S)
-					neighbourIndex += gridSideLength;
-				if (direction & Direction::W)
-					neighbourIndex--;
-				if (direction & Direction::E)
-					neighbourIndex++;
-
-				return neighbourIndex;
-			};
-
-		int validDirections = FindValidDirections(idx);
+		int validDirections = Direction::FindValidDirections(idx);
 		printf("Valid directions: %x\n", validDirections);
 
 		for (int i = 0; i < Direction::dirsSize; ++i)
 		{
 			int directionToCheck = Direction::dirs[i];
 
-			// if `directionToCheck` has a '1' where there shouldn't be, this will return false
-			auto IsValidDirection = [](int validDirections, int directionToCheck)
-				{
-					return (directionToCheck | validDirections) == validDirections;
-				};
-
-			if (IsValidDirection(validDirections, directionToCheck))
+			if (Direction::IsValidDirection(validDirections, directionToCheck))
 			{
-				int neighbourIndex = FindNeighbour(idx, directionToCheck);
+				int neighbourIndex = Direction::GetNeighbour(idx, directionToCheck);
 				printf("%d: %s was valid, neighbour is %d\n", i, Direction::DirToString(directionToCheck), neighbourIndex);
 
 				// using `std::function` because it allows for recursive calls, unlike `auto`
 				// thanks to https://stackoverflow.com/q/7861506/30412497 !
-				std::function<bool(int, int, int)> Uhh = [&](int neighbour, int direction, int progress) -> bool
+				std::function<bool(int, int, int)> FindRestOfSequence = [&](int neighbour, int direction, int progress) -> bool
 					{
 						int row = neighbour / gridSideLength;
 						int col = neighbour % gridSideLength;
@@ -165,13 +169,13 @@ int main(int argc, char* argv[])
 						if (progress + 1 >= SEQUENCE_LENGTH - 1)
 							return true;
 
-						int neighbourValidDirections = FindValidDirections(neighbour);
-						if (!IsValidDirection(neighbourValidDirections, direction))
+						int neighbourValidDirections = Direction::FindValidDirections(neighbour);
+						if (!Direction::IsValidDirection(neighbourValidDirections, direction))
 							return false;
 
-						return Uhh(FindNeighbour(neighbour, direction), direction, progress + 1);
+						return FindRestOfSequence(Direction::GetNeighbour(neighbour, direction), direction, progress + 1);
 					};
-				total += Uhh(neighbourIndex, directionToCheck, 0) ? 1 : 0;
+				total += FindRestOfSequence(neighbourIndex, directionToCheck, 0) ? 1 : 0;
 			}
 		}
 
@@ -180,4 +184,9 @@ int main(int argc, char* argv[])
 
 	printf("Total: %d\n", total);
 	return 0;
+}
+
+int main(int argc, char* argv[])
+{
+	return main_01(argc, argv);
 }
