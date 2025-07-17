@@ -31,9 +31,8 @@ struct Direction
 		case NE: return "Northeast";
 		case SW: return "Southwest";
 		case SE: return "Southeast";
-		default: break;
-		}
-		return "";
+		default: return "";
+		}		
 	}
 };
 
@@ -89,7 +88,7 @@ int main(int argc, char* argv[])
 		printf("Current Index: %d\n", idx);
 		(void)ch;
 
-		auto isNeighbourValid = [gridSideLength](int index)
+		auto FindValidDirections = [gridSideLength](int index)
 			{
 				int allowedDirections = Direction::MT;
 				int gridSize = gridSideLength * gridSideLength;
@@ -118,11 +117,44 @@ int main(int argc, char* argv[])
 		//   is neighbour valid?
 		// 	   if so, search in that direction
 
-		isNeighbourValid(idx);
+		auto FindNeighbour = [gridSideLength](int index, int direction)
+			{
+				int neighbourIndex = index;
+
+				if (direction & Direction::N)
+					neighbourIndex -= gridSideLength;
+				if (direction & Direction::S)
+					neighbourIndex += gridSideLength;
+				if (direction & Direction::W)
+					neighbourIndex--;
+				if (direction & Direction::E)
+					neighbourIndex++;
+
+				return neighbourIndex;
+			};
+
+		int validDirections = FindValidDirections(idx);
+		printf("Valid directions: %x\n", validDirections);
+
+		for (int i = 0; i < Direction::dirsSize; ++i)
+		{
+			int directionToCheck = Direction::dirs[i];
+
+			// if `directionToCheck` has a '1' where there shouldn't be, this will return false
+			bool isValid = (directionToCheck | validDirections) == validDirections;
+
+			if (isValid)
+			{
+				int neighbourIndex = FindNeighbour(idx, directionToCheck);
+				printf("%d: %s was valid, neighbour is %d\n", i, Direction::DirToString(directionToCheck), neighbourIndex);
+			}
+		}
+
 		(void)SEQUENCE_LENGTH;
 		(void)sequence;
 		(void)total;
 		(void)progress;
+		printf("\n");
 	}
 
 	return 0;
