@@ -186,7 +186,67 @@ int main_01(int argc, char* argv[])
 	return 0;
 }
 
+int main_02(int argc, char* argv[])
+{
+	if (argc != 2)
+	{
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename...\n");
+	}
+
+	std::fstream file(argc == 2 ? argv[1] : "small.txt");
+	if (!file)
+	{
+		printf("sorry %s isn't a file\n", argv[1]);
+		return -1;
+	}
+
+	std::string line;
+	std::getline(file, line);
+	while (!isalpha(line.back()))
+	{
+		line.pop_back();
+	}
+
+	int gridSideLength = line.length();
+	Direction::gridSideLength = gridSideLength;
+	int gridSize = gridSideLength * gridSideLength;
+	file.seekg(0);
+
+	std::vector<std::string> grid(gridSideLength, std::string(gridSideLength, '\0'));
+	{
+		int i = 0;
+		while (std::getline(file, line))
+		{
+			grid[i] = line;
+			i++;
+		}
+	}
+
+	const int SEQUENCE_LENGTH = 3;
+	char sequence[] = { 'M','A','S' };
+	int total = 0;
+
+	for (int idx = 0; idx < gridSize; idx++)
+	{
+		int row = idx / gridSideLength;
+		int col = idx % gridSideLength;
+		char ch = grid[row][col];
+		printf("Current Character: %c\n", ch);
+		printf("Current Index: %d\n", idx);
+
+		printf("\n");
+	}
+
+	(void)sequence;
+	(void)SEQUENCE_LENGTH;
+	printf("Total: %d\n", total);
+	return 0;
+}
+
 int main(int argc, char* argv[])
 {
-	return main_01(argc, argv);
+	// return main_01(argc, argv);
+	return main_02(argc, argv);
 }
