@@ -58,12 +58,12 @@ int main(int argc, char* argv[])
 	int total = 0;
 	int progress = 0;
 
-	for (int i = 0; i < gridSize; i++)
+	for (int idx = 0; idx < gridSize; idx++)
 	{
-		int row = i / gridSideLength;
-		int col = i % gridSideLength;
+		int row = idx / gridSideLength;
+		int col = idx % gridSideLength;
 		char ch = grid[row][col];
-		if (i > 0 && (i - 1) / gridSideLength != row)
+		if (idx > 0 && (idx - 1) / gridSideLength != row)
 		{
 			printf("\n");
 		}
@@ -98,7 +98,7 @@ int main(int argc, char* argv[])
 		//   is neighbour valid?
 		// 	   if so, search in that direction
 
-		isNeighbourValid(i);
+		isNeighbourValid(idx);
 		(void)SEQUENCE_LENGTH;
 		(void)sequence;
 		(void)total;
