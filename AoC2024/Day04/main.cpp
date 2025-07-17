@@ -15,17 +15,38 @@ struct Direction
 		NE = N | E,
 		SW = S | W,
 		SE = S | E;
+
+	constexpr static int dirsSize = 8;
+	constexpr static int dirs[dirsSize] = { N, S, W, E, NW, NE, SW, SE };
+
+	static const char* DirToString(int dir)
+	{
+		switch (dir)
+		{
+		case N: return "North";
+		case S: return "South";
+		case W: return "West";
+		case E: return "East";
+		case NW: return "Northwest";
+		case NE: return "Northeast";
+		case SW: return "Southwest";
+		case SE: return "Southeast";
+		default: break;
+		}
+		return "";
+	}
 };
 
 int main(int argc, char* argv[])
 {
 	if (argc != 2)
 	{
-		printf("Usage: ./this_program_name some_input_file.txt");
-		return -1;
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename...\n");
 	}
 
-	std::fstream file(argv[1]);
+	std::fstream file(argc == 2 ? argv[1] : "small.txt");
 	if (!file)
 	{
 		printf("sorry %s isn't a file\n", argv[1]);
@@ -63,11 +84,9 @@ int main(int argc, char* argv[])
 		int row = idx / gridSideLength;
 		int col = idx % gridSideLength;
 		char ch = grid[row][col];
-		if (idx > 0 && (idx - 1) / gridSideLength != row)
-		{
-			printf("\n");
-		}
-		// printf("Current Character: %c\n", ch);
+		// if (idx > 0 && (idx - 1) / gridSideLength != row) printf("\n"); // separates every row
+		printf("Current Character: %c\n", ch);
+		printf("Current Index: %d\n", idx);
 		(void)ch;
 
 		auto isNeighbourValid = [gridSideLength](int index)
@@ -90,7 +109,8 @@ int main(int argc, char* argv[])
 				// is right ok?
 				if (index % gridSideLength != gridSideLength - 1)
 					allowedDirections |= Direction::E;
-				printf("%x", allowedDirections);
+
+				return allowedDirections;
 			};
 
 		// if I find the first character,
