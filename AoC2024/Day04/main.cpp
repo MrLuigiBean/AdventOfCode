@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -74,9 +75,8 @@ int main(int argc, char* argv[])
 	}
 
 	const int SEQUENCE_LENGTH = 4;
-	char sequence[] = "XMAS";
+	char sequence[] = { 'X','M','A','S' };
 	int total = 0;
-	int progress = 0;
 
 	for (int idx = 0; idx < gridSize; idx++)
 	{
@@ -86,7 +86,9 @@ int main(int argc, char* argv[])
 		// if (idx > 0 && (idx - 1) / gridSideLength != row) printf("\n"); // separates every row
 		printf("Current Character: %c\n", ch);
 		printf("Current Index: %d\n", idx);
-		(void)ch;
+
+		if (ch != sequence[0])
+			continue;
 
 		auto FindValidDirections = [gridSideLength](int index)
 			{
@@ -112,11 +114,6 @@ int main(int argc, char* argv[])
 				return allowedDirections;
 			};
 
-		// if I find the first character,
-		// for all directions
-		//   is neighbour valid?
-		// 	   if so, search in that direction
-
 		auto FindNeighbour = [gridSideLength](int index, int direction)
 			{
 				int neighbourIndex = index;
@@ -141,21 +138,46 @@ int main(int argc, char* argv[])
 			int directionToCheck = Direction::dirs[i];
 
 			// if `directionToCheck` has a '1' where there shouldn't be, this will return false
-			bool isValid = (directionToCheck | validDirections) == validDirections;
+			auto IsValidDirection = [](int validDirections, int directionToCheck)
+				{
+					return (directionToCheck | validDirections) == validDirections;
+				};
 
-			if (isValid)
+			if (IsValidDirection(validDirections, directionToCheck))
 			{
 				int neighbourIndex = FindNeighbour(idx, directionToCheck);
 				printf("%d: %s was valid, neighbour is %d\n", i, Direction::DirToString(directionToCheck), neighbourIndex);
+
+				// using `std::function` because it allows for recursive calls, unlike `auto`
+				// thanks to https://stackoverflow.com/q/7861506/30412497 !
+				std::function<bool(int, int, int)> Uhh = [&](int neighbour, int direction, int progress) -> bool
+					{
+						int row = neighbour / gridSideLength;
+						int col = neighbour % gridSideLength;
+
+						for (int tmp = 0; tmp < progress; ++tmp) printf(" ");
+						printf("neighbour character: %c at %d\n", grid[row][col], neighbour);
+
+						if (grid[row][col] != sequence[progress + 1])
+							return false;
+
+						// check if index is for the last value
+						if (progress + 1 >= SEQUENCE_LENGTH - 1)
+							return true;
+
+						int neighbourValidDirections = FindValidDirections(neighbour);
+						if (!IsValidDirection(neighbourValidDirections, direction))
+							return false;
+
+						return Uhh(FindNeighbour(neighbour, direction), direction, progress + 1);
+					};
+				total += Uhh(neighbourIndex, directionToCheck, 0) ? 1 : 0;
 			}
 		}
 
-		(void)SEQUENCE_LENGTH;
-		(void)sequence;
-		(void)total;
-		(void)progress;
 		printf("\n");
 	}
 
+	printf("Total: %d\n", total);
 	return 0;
 }
