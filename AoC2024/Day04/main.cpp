@@ -4,6 +4,8 @@
 #include <string>
 #include <vector>
 
+#define PRINT(x) std::cout << #x << ": " << (x) << "\n"
+
 struct Direction
 {
 	const static int
@@ -18,6 +20,7 @@ struct Direction
 		SE = S | E;
 
 	constexpr static int dirsSize = 8;
+	constexpr static int dirsDiagonalStartIndex = 4;
 	constexpr static int dirs[dirsSize] = { N, S, W, E, NW, NE, SW, SE };
 
 	static const char* DirToString(int dir)
@@ -86,6 +89,20 @@ struct Direction
 };
 
 int Direction::gridSideLength = 0;
+
+struct Coordinates
+{
+	int row;
+	int col;
+};
+
+static Coordinates IndexToCoordinates(int index, int gridSideLength)
+{
+	return Coordinates{
+		.row = index / gridSideLength,
+		.col = index % gridSideLength
+	};
+}
 
 int main_01(int argc, char* argv[])
 {
@@ -195,7 +212,8 @@ int main_02(int argc, char* argv[])
 		printf("Using default filename...\n");
 	}
 
-	std::fstream file(argc == 2 ? argv[1] : "small.txt");
+	const char* defaultFilename = "small.txt";
+	std::fstream file(argc == 2 ? argv[1] : defaultFilename);
 	if (!file)
 	{
 		printf("sorry %s isn't a file\n", argv[1]);
@@ -225,6 +243,7 @@ int main_02(int argc, char* argv[])
 	}
 
 	const int SEQUENCE_LENGTH = 3;
+	const int SEQUENCE_MIDDLE_INDEX = (SEQUENCE_LENGTH - 1) / 2;
 	char sequence[] = { 'M','A','S' };
 	int total = 0;
 
@@ -235,6 +254,63 @@ int main_02(int argc, char* argv[])
 		char ch = grid[row][col];
 		printf("Current Character: %c\n", ch);
 		printf("Current Index: %d\n", idx);
+
+		// if it is THE character ('A')
+		//   check all 'corner' neighbours
+		//   if all 'corner' neighbours have the right values
+		//     increment total
+
+		// we want to check from the middle
+		if (ch != sequence[SEQUENCE_MIDDLE_INDEX])
+			continue;
+
+		int validDirections = Direction::FindValidDirections(idx);
+		bool isAllDiagonalsPresent = true;
+		for (int dirIndex = Direction::dirsDiagonalStartIndex; dirIndex < Direction::dirsSize; ++dirIndex)
+		{
+			int dir = Direction::dirs[dirIndex];
+			printf("Checking %s\n", Direction::DirToString(dir));
+			isAllDiagonalsPresent &= Direction::IsValidDirection(validDirections, dir);
+		}
+
+		if (isAllDiagonalsPresent)
+		{
+			printf("yayy all diagonals present!\n");
+
+			// since the sequence is just 3 characters long, recursion isn't really warranted
+
+			const int diagonalNeighbourSize = 4;
+			int arr[diagonalNeighbourSize] = { 0 };
+			for (int dirIndex = Direction::dirsDiagonalStartIndex, i = 0; dirIndex < Direction::dirsSize; ++dirIndex, ++i)
+			{
+				arr[i] = Direction::GetNeighbour(idx, Direction::dirs[dirIndex]);
+			}
+
+			for (int i = 0; i < diagonalNeighbourSize; ++i)
+			{
+				auto [row, col] = IndexToCoordinates(arr[i], gridSideLength);
+				arr[i] = grid[row][col]; // could maybe detect early no-no situation here but oh well
+			}
+
+			printf("arrs is: [");
+			for (int i = 0; i < diagonalNeighbourSize; ++i)
+			{
+				printf("%c%c", arr[i], ((i == diagonalNeighbourSize - 1) ? '\0' : ','));
+			}
+			printf("]\n");
+
+			bool backslashCheck = (arr[0] == sequence[0] && arr[3] == sequence[2]) ||
+				(arr[0] == sequence[2] && arr[3] == sequence[0]);
+			
+			bool slashCheck = (arr[1] == sequence[0] && arr[2] == sequence[2]) ||
+				(arr[1] == sequence[2] && arr[2] == sequence[0]);
+
+			if (backslashCheck && slashCheck)
+			{
+				printf("total incremented\n");
+				++total;
+			}
+		}
 
 		printf("\n");
 	}
