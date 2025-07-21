@@ -1,10 +1,23 @@
 #include <iostream>
+#include <fstream>
 
 int main_01(int argc, char* argv[])
 {
-	(void)argc;
-	(void)argv;
-	printf("Hello 1!\n");
+	const char* defaultFilename = "small.txt";
+	if (argc != 2)
+	{
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename %s...\n", defaultFilename);
+	}
+
+	std::fstream file(argc == 2 ? argv[1] : defaultFilename);
+	if (!file)
+	{
+		printf("sorry %s isn't a file\n", argv[1]);
+		return -1;
+	}
+
 	return 0;
 }
 
