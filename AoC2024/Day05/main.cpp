@@ -36,6 +36,8 @@ struct Rule
 
 		return (before == other.before) ? (after < other.after) : (before < other.before);
 	}
+
+	void Flip() { std::swap(before, after); }
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Rule& rule)
@@ -125,21 +127,37 @@ int main_01(int argc, char* argv[])
 	for (Update& update : updates)
 	{
 		update.isCorrectlyOrdered = true;
+
+		PRINT(update);
+
+		// create rules from update
+		Rules generatedRules;
 		for (unsigned i = 0; i < update.pages.size(); ++i)
+			for (unsigned j = i + 1; j < update.pages.size(); ++j)
+				generatedRules.emplace_back(update.pages[i], update.pages[j]);
+
+		printf("Generated rules:\n");
+		for (const Rule& rules : generatedRules)
+			std::cout << rules << '\n';
+
+		// see if there are contradicting rules from before
+		std::for_each(generatedRules.begin(), generatedRules.end(), [](Rule& rule) { rule.Flip(); });
+
+		printf("(flipped) Generated rules:\n");
+		for (const Rule& rules : generatedRules)
+			std::cout << rules << '\n';
+
+		for (const Rule& flippedRule : generatedRules)
 		{
-			const int page = update.pages[i];
-			(void)page;
-
-			// if a page was already messed up, no need to continue checking other pages
-			if (!update.isCorrectlyOrdered)
+			if (std::find(rules.begin(), rules.end(), flippedRule) != rules.end())
+			{
+				std::cout << flippedRule << " was found in `rules`.\n";
+				update.isCorrectlyOrdered = false;
 				break;
-
-			bool isPageGood = true;
-
-			;
-
-			update.isCorrectlyOrdered &= isPageGood;
+			}
 		}
+
+		printf("\n");
 	}
 
 	std::erase_if(updates, [](const Update& update) { return !update.isCorrectlyOrdered; });
