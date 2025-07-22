@@ -1,8 +1,11 @@
+#include <algorithm>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <string>
 #include <vector>
+
+#define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
 struct Rule
 {
@@ -13,6 +16,26 @@ struct Rule
 		char pipe;
 		std::stringstream(line) >> before >> pipe >> after;
 	}
+
+	Rule(const int before, const int after) : before{ before }, after{ after } {}
+
+	bool operator==(const Rule& other) const
+	{
+		return before == other.before && after == other.after;
+	}
+
+	// sort based on first number, then second
+	bool operator<(const Rule& other) const
+	{
+		// if (before < other.before)
+		// 	return true;
+		// else if (before == other.before)
+		// 	return after < other.after;
+
+		// ^ all this stuff is equal to the line below v
+
+		return (before == other.before) ? (after < other.after) : (before < other.before);
+	}
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Rule& rule)
@@ -20,9 +43,18 @@ inline std::ostream& operator<<(std::ostream& stream, const Rule& rule)
 	return stream << '(' << rule.before << '|' << rule.after << ')';
 }
 
+struct Rules : public std::vector<Rule>
+{
+	bool HasRule(Rule rule)
+	{
+		return std::find(begin(), end(), rule) != end();
+	}
+};
+
 struct Update
 {
 	std::vector<int> pages;
+	bool isCorrectlyOrdered = false;
 
 	Update(const std::string& line)
 	{
@@ -62,7 +94,7 @@ int main_01(int argc, char* argv[])
 		return -1;
 	}
 
-	std::vector<Rule> rules;
+	Rules rules;
 	bool isReadingRules = true;
 
 	std::vector<Update> updates;
@@ -85,11 +117,40 @@ int main_01(int argc, char* argv[])
 			updates.emplace_back(line);
 	}
 
-	printf("All rules:\n");
-	for (const Rule& rule : rules) std::cout << rule << '\n';
+	rules.shrink_to_fit();
+	std::sort(rules.begin(), rules.end());
 
-	printf("All updates:\n");
-	for (const Update& update : updates) std::cout << update << '\n';
+	updates.shrink_to_fit();
+
+	for (Update& update : updates)
+	{
+		update.isCorrectlyOrdered = true;
+		for (unsigned i = 0; i < update.pages.size(); ++i)
+		{
+			const int page = update.pages[i];
+			(void)page;
+
+			// if a page was already messed up, no need to continue checking other pages
+			if (!update.isCorrectlyOrdered)
+				break;
+
+			bool isPageGood = true;
+
+			;
+
+			update.isCorrectlyOrdered &= isPageGood;
+		}
+	}
+
+	std::erase_if(updates, [](const Update& update) { return !update.isCorrectlyOrdered; });
+
+	int total = 0;
+	for (const Update& update : updates)
+	{
+		total += update.pages[(update.pages.size() - 1) / 2];
+	}
+
+	PRINT(total);
 
 	return 0;
 }
