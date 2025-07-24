@@ -56,6 +56,8 @@ struct Rules : public std::vector<Rule>
 struct Update
 {
 	std::vector<int> pages;
+	std::vector<Rule> violatedRules;
+	std::vector<Rule> followedRules;
 	bool isCorrectlyOrdered = false;
 
 	Update(const std::string& line)
@@ -71,12 +73,18 @@ struct Update
 	}
 };
 
-inline std::ostream& operator<<(std::ostream& stream, const Update& update)
+template <typename T>
+inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 {
 	stream << '[';
-	for (unsigned i = 0; i < update.pages.size(); ++i)
-		stream << update.pages[i] << ((i < update.pages.size() - 1) ? ',' : '\0');
+	for (unsigned i = 0; i < vec.size(); ++i)
+		stream << vec[i] << ((i < vec.size() - 1) ? "," : "");
 	return stream << ']';
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Update& update)
+{
+	return stream << update.pages;
 }
 
 bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Update>& updates)
@@ -122,36 +130,30 @@ void IdentifyIncorrectUpdates(std::vector<Update>& updates, const Rules& rules)
 	{
 		update.isCorrectlyOrdered = true;
 
-		PRINT(update);
-
 		// create rules from update
 		Rules generatedRules;
 		for (unsigned i = 0; i < update.pages.size(); ++i)
+		{
 			for (unsigned j = i + 1; j < update.pages.size(); ++j)
-				generatedRules.emplace_back(update.pages[i], update.pages[j]);
-
-		printf("Generated rules:\n");
-		for (const Rule& rules : generatedRules)
-			std::cout << rules << '\n';
+			{
+				Rule generatedRule(update.pages[i], update.pages[j]);
+				generatedRules.emplace_back(generatedRule);
+				if (std::find(rules.begin(), rules.end(), generatedRule) != rules.end())
+					update.followedRules.emplace_back(generatedRule);
+			}
+		}
 
 		// see if there are contradicting rules from before
 		std::for_each(generatedRules.begin(), generatedRules.end(), [](Rule& rule) { rule.Flip(); });
-
-		printf("(flipped) Generated rules:\n");
-		for (const Rule& rules : generatedRules)
-			std::cout << rules << '\n';
 
 		for (const Rule& flippedRule : generatedRules)
 		{
 			if (std::find(rules.begin(), rules.end(), flippedRule) != rules.end())
 			{
-				std::cout << flippedRule << " was found in `rules`.\n";
 				update.isCorrectlyOrdered = false;
-				break;
+				update.violatedRules.emplace_back(flippedRule);
 			}
 		}
-
-		printf("\n");
 	}
 }
 
@@ -174,7 +176,7 @@ int main_01(int argc, char* argv[])
 		return -1;
 
 	IdentifyIncorrectUpdates(updates, rules);
-	
+
 	std::erase_if(updates, [](const Update& update) { return !update.isCorrectlyOrdered; });
 
 	int total = 0;
@@ -211,6 +213,27 @@ int main_02(int argc, char* argv[])
 	std::erase_if(updates, [](const Update& update) { return update.isCorrectlyOrdered; });
 
 	// fix 'em here
+	for (Update& update : updates)
+	{
+		std::cout << "Current update: " << update << '\n';
+		std::cout << "Followed rules: " << update.followedRules << '\n';
+		std::cout << "Violated rules: " << update.violatedRules << '\n';
+
+		// i'll be shocked if this works
+		// update: it didn't, 6633 was too high
+#if 0
+		for (const Rule& rule : update.violatedRules)
+		{
+			std::cout << "Current rule: " << rule << '\n';
+			std::swap(
+				*(std::find(update.pages.begin(), update.pages.end(), rule.before)),
+				*(std::find(update.pages.begin(), update.pages.end(), rule.after)));
+			std::cout << update << '\n';
+		}
+#endif
+
+		printf("\n");
+	}
 
 	int total = 0;
 	for (const Update& update : updates)
