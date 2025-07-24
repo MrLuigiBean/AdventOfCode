@@ -1,2 +1,5 @@
 *.out
 *\.vscode
+*\input.txt
+*\small.txt
+*\small2.txt
