@@ -79,27 +79,16 @@ inline std::ostream& operator<<(std::ostream& stream, const Update& update)
 	return stream << ']';
 }
 
-int main_01(int argc, char* argv[])
+bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Update>& updates)
 {
-	const char* defaultFilename = "small.txt";
-	if (argc != 2)
-	{
-		printf("Usage: ./this_program_name some_input_file.txt\n");
-		// return -1;
-		printf("Using default filename %s...\n", defaultFilename);
-	}
-
-	std::fstream file(argc == 2 ? argv[1] : defaultFilename);
+	std::fstream file(filename);
 	if (!file)
 	{
-		printf("sorry %s isn't a file\n", argv[1]);
-		return -1;
+		printf("sorry %s isn't a file\n", filename.c_str());
+		return false;
 	}
 
-	Rules rules;
 	bool isReadingRules = true;
-
-	std::vector<Update> updates;
 	bool isReadingUpdates = false;
 
 	std::string line;
@@ -124,6 +113,11 @@ int main_01(int argc, char* argv[])
 
 	updates.shrink_to_fit();
 
+	return true;
+}
+
+void DetermineIncorrectUpdates(std::vector<Update>& updates, const Rules& rules)
+{
 	for (Update& update : updates)
 	{
 		update.isCorrectlyOrdered = true;
@@ -159,7 +153,28 @@ int main_01(int argc, char* argv[])
 
 		printf("\n");
 	}
+}
 
+int main_01(int argc, char* argv[])
+{
+	constexpr const char* defaultFilename = "small.txt";
+	const char* filename = argc == 2 ? argv[1] : defaultFilename;
+
+	if (argc != 2)
+	{
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename %s...\n", defaultFilename);
+	}
+
+	Rules rules;
+	std::vector<Update> updates;
+
+	if (!ReadDataFromFile(filename, rules, updates))
+		return -1;
+
+	DetermineIncorrectUpdates(updates, rules);
+	
 	std::erase_if(updates, [](const Update& update) { return !update.isCorrectlyOrdered; });
 
 	int total = 0;
