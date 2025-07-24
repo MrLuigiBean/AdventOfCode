@@ -116,7 +116,7 @@ bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Upd
 	return true;
 }
 
-void DetermineIncorrectUpdates(std::vector<Update>& updates, const Rules& rules)
+void IdentifyIncorrectUpdates(std::vector<Update>& updates, const Rules& rules)
 {
 	for (Update& update : updates)
 	{
@@ -173,7 +173,7 @@ int main_01(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, rules, updates))
 		return -1;
 
-	DetermineIncorrectUpdates(updates, rules);
+	IdentifyIncorrectUpdates(updates, rules);
 	
 	std::erase_if(updates, [](const Update& update) { return !update.isCorrectlyOrdered; });
 
@@ -190,15 +190,41 @@ int main_01(int argc, char* argv[])
 
 int main_02(int argc, char* argv[])
 {
-	(void)argc;
-	(void)argv;
-	printf("Hello 2!\n");
+	constexpr const char* defaultFilename = "small.txt";
+	const char* filename = argc == 2 ? argv[1] : defaultFilename;
+
+	if (argc != 2)
+	{
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename %s...\n", defaultFilename);
+	}
+
+	Rules rules;
+	std::vector<Update> updates;
+
+	if (!ReadDataFromFile(filename, rules, updates))
+		return -1;
+
+	IdentifyIncorrectUpdates(updates, rules);
+
+	std::erase_if(updates, [](const Update& update) { return update.isCorrectlyOrdered; });
+
+	// fix 'em here
+
+	int total = 0;
+	for (const Update& update : updates)
+	{
+		total += update.pages[(update.pages.size() - 1) / 2];
+	}
+
+	PRINT(total);
+
 	return 0;
 }
 
 int main(int argc, char* argv[])
 {
-	main_01(argc, argv);
-	// main_02(argc, argv);
-	return 0;
+	// return main_01(argc, argv);
+	return main_02(argc, argv);
 }
