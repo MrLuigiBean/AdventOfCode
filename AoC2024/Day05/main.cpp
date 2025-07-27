@@ -132,18 +132,11 @@ void Update::FixIncorrectOrder()
 			else if (rule.after == page)
 				++ranking.afterPoints;
 
-		// printf("Page %d has %d before pts and %d after pts\n", haha.page, haha.beforePoints, haha.afterPoints);
-
 		++index;
 	}
 
 	std::sort(rankings.begin(), rankings.end(), [](const Ranking& a, const Ranking& b)
 		{ return a.afterPoints < b.afterPoints; });
-
-	// printf("[");
-	// for (const Haha& haha : vec)
-	// 	printf("%d(%d, %d), ", haha.page, haha.beforePoints, haha.afterPoints);
-	// printf("]\n");
 
 	for (unsigned i = 0; i < pages.size(); ++i)
 		pages[i] = rankings[i].page;
@@ -278,27 +271,7 @@ int main_02(int argc, char* argv[])
 
 	// fix 'em here
 	for (Update& update : updates)
-	{
-		std::cout << "Current update: " << update << '\n';
-		std::cout << "Followed rules: " << update.followedRules << '\n';
-		std::cout << "Violated rules: " << update.violatedRules << '\n';
-
-		// i'll be shocked if this works
-		// update: it didn't, 6633 was too high
-#if 0
-		for (const Rule& rule : update.violatedRules)
-		{
-			std::cout << "Current rule: " << rule << '\n';
-			std::swap(
-				*(std::find(update.pages.begin(), update.pages.end(), rule.before)),
-				*(std::find(update.pages.begin(), update.pages.end(), rule.after)));
-			std::cout << update << '\n';
-		}
-#endif
-
 		update.FixIncorrectOrder();
-		printf("\n");
-	}
 
 	int total = 0;
 	for (const Update& update : updates)
