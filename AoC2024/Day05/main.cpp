@@ -7,6 +7,15 @@
 
 #define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
+template <typename T>
+inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
+{
+	stream << '[';
+	for (unsigned i = 0; i < vec.size(); ++i)
+		stream << vec[i] << ((i < vec.size() - 1) ? "," : "");
+	return stream << ']';
+}
+
 struct Rule
 {
 	int before, after;
@@ -47,7 +56,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Rule& rule)
 
 struct Rules : public std::vector<Rule>
 {
-	bool HasRule(Rule rule)
+	bool HasRule(Rule rule) const
 	{
 		return std::find(begin(), end(), rule) != end();
 	}
@@ -55,7 +64,8 @@ struct Rules : public std::vector<Rule>
 
 struct Update
 {
-	std::vector<int> pages;
+	using Page = int;
+	std::vector<Page> pages;
 	std::vector<Rule> violatedRules;
 	std::vector<Rule> followedRules;
 	bool isCorrectlyOrdered = false;
@@ -63,7 +73,7 @@ struct Update
 	Update(const std::string& line)
 	{
 		std::stringstream sstream(line);
-		int pageNumber;
+		Page pageNumber;
 		char comma;
 		do
 		{
@@ -71,20 +81,74 @@ struct Update
 			pages.emplace_back(pageNumber);
 		} while (sstream >> comma);
 	}
-};
 
-template <typename T>
-inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
-{
-	stream << '[';
-	for (unsigned i = 0; i < vec.size(); ++i)
-		stream << vec[i] << ((i < vec.size() - 1) ? "," : "");
-	return stream << ']';
-}
+	struct Ranking
+	{
+		Page page = 0;
+		int beforePoints = 0;
+		int afterPoints = 0;
+	};
+
+	void FixIncorrectOrder();
+};
 
 inline std::ostream& operator<<(std::ostream& stream, const Update& update)
 {
 	return stream << update.pages;
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Update::Ranking& ranking)
+{
+	return stream << ranking.page << '(' << ranking.beforePoints << ',' << ranking.afterPoints << ')';
+}
+
+void Update::FixIncorrectOrder()
+{
+	Rules combinedRules;
+	combinedRules.insert(combinedRules.end(), followedRules.begin(), followedRules.end());
+	combinedRules.insert(combinedRules.end(), violatedRules.begin(), violatedRules.end());
+
+	// ranking system??
+
+	// based on the rules, rank each page for 
+	// 'going in front' and 'going behind'
+
+	// for each page, give them 'begin' points and 'end' points
+	// use them to position the pages somehow??
+
+	// data structure(?): page -> beforePts, afterPts
+
+	std::vector<Ranking> rankings(pages.size());
+	int index = 0;
+
+	for (const Page page : pages)
+	{
+		Ranking& ranking = rankings[index];
+		ranking.page = page;
+
+		for (const Rule& rule : combinedRules)
+			if (rule.before == page)
+				++ranking.beforePoints;
+			else if (rule.after == page)
+				++ranking.afterPoints;
+
+		// printf("Page %d has %d before pts and %d after pts\n", haha.page, haha.beforePoints, haha.afterPoints);
+
+		++index;
+	}
+
+	std::sort(rankings.begin(), rankings.end(), [](const Ranking& a, const Ranking& b)
+		{ return a.afterPoints < b.afterPoints; });
+
+	// printf("[");
+	// for (const Haha& haha : vec)
+	// 	printf("%d(%d, %d), ", haha.page, haha.beforePoints, haha.afterPoints);
+	// printf("]\n");
+
+	for (unsigned i = 0; i < pages.size(); ++i)
+		pages[i] = rankings[i].page;
+
+	isCorrectlyOrdered = true;
 }
 
 bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Update>& updates)
@@ -232,6 +296,7 @@ int main_02(int argc, char* argv[])
 		}
 #endif
 
+		update.FixIncorrectOrder();
 		printf("\n");
 	}
 
