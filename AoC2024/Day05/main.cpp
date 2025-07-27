@@ -54,14 +54,6 @@ inline std::ostream& operator<<(std::ostream& stream, const Rule& rule)
 	return stream << '(' << rule.before << '|' << rule.after << ')';
 }
 
-struct Rules : public std::vector<Rule>
-{
-	bool HasRule(Rule rule) const
-	{
-		return std::find(begin(), end(), rule) != end();
-	}
-};
-
 struct Update
 {
 	using Page = int;
@@ -104,7 +96,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Update::Ranking& ran
 
 void Update::FixIncorrectOrder()
 {
-	Rules combinedRules;
+	std::vector<Rule> combinedRules;
 	combinedRules.insert(combinedRules.end(), followedRules.begin(), followedRules.end());
 	combinedRules.insert(combinedRules.end(), violatedRules.begin(), violatedRules.end());
 
@@ -144,7 +136,7 @@ void Update::FixIncorrectOrder()
 	isCorrectlyOrdered = true;
 }
 
-bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Update>& updates)
+bool ReadDataFromFile(const std::string& filename, std::vector<Rule>& rules, std::vector<Update>& updates)
 {
 	std::fstream file(filename);
 	if (!file)
@@ -181,14 +173,14 @@ bool ReadDataFromFile(const std::string& filename, Rules& rules, std::vector<Upd
 	return true;
 }
 
-void IdentifyIncorrectUpdates(std::vector<Update>& updates, const Rules& rules)
+void IdentifyIncorrectUpdates(std::vector<Update>& updates, const std::vector<Rule>& rules)
 {
 	for (Update& update : updates)
 	{
 		update.isCorrectlyOrdered = true;
 
 		// create rules from update
-		Rules generatedRules;
+		std::vector<Rule> generatedRules;
 		for (unsigned i = 0; i < update.pages.size(); ++i)
 		{
 			for (unsigned j = i + 1; j < update.pages.size(); ++j)
@@ -226,7 +218,7 @@ int main_01(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
-	Rules rules;
+	std::vector<Rule> rules;
 	std::vector<Update> updates;
 
 	if (!ReadDataFromFile(filename, rules, updates))
@@ -259,7 +251,7 @@ int main_02(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
-	Rules rules;
+	std::vector<Rule> rules;
 	std::vector<Update> updates;
 
 	if (!ReadDataFromFile(filename, rules, updates))
