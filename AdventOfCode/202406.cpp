@@ -22,6 +22,51 @@ enum Symbols
 	VISITED = 'X'
 };
 
+enum class Direction { N, S, E, W };
+
+Direction TurnRight(Direction dir)
+{
+	switch (dir)
+	{
+	case Direction::N: return Direction::E;
+	case Direction::S: return Direction::W;
+	case Direction::E: return Direction::S;
+	case Direction::W: return Direction::N;
+	default: return Direction::N;
+	}
+}
+
+struct Position
+{
+	unsigned row, col;
+
+	static unsigned gridSideLength;
+
+	bool IsInGrid()
+	{
+		return row < gridSideLength && col < gridSideLength;
+	}
+
+	void Advance(Direction dir)
+	{
+		switch (dir)
+		{
+		case Direction::N: --row; return;
+		case Direction::S: ++row; return;
+		case Direction::E: ++col; return;
+		case Direction::W: --col; return;
+		default: return;
+		}
+	}
+};
+
+unsigned Position::gridSideLength = 0;
+
+inline std::ostream& operator<<(std::ostream& stream, const Position& pos)
+{
+	return stream << '(' << pos.row << ',' << pos.col << ')';
+}
+
 // oops, 50 min rabbit hole :)
 unsigned GetFileLineCount(const char* filename)
 {
@@ -54,26 +99,58 @@ bool ReadDataFromFile(const std::string& filename, Grid& grid)
 		grid.emplace_back(line);
 
 	grid.shrink_to_fit();
+	Position::gridSideLength = grid.size();
 	return true;
 }
 
-int Process(const Grid& grid)
+int Process(Grid& grid)
 {
-	struct Pos { unsigned row, col; } startPos;
-	
+	Position startPos;
+
 	for (unsigned i = 0; i < grid.size(); ++i)
 	{
 		for (unsigned j = 0; j < grid[i].size(); ++j)
 		{
 			if (grid[i][j] == Symbols::START)
-				startPos = Pos{ .row = i, .col = j };
+			{
+				startPos = Position{ .row = i, .col = j };
+				grid[i][j] = Symbols::EMPTY;
+			}
 		}
 	}
 
-	PRINT(startPos.col);
-	PRINT(startPos.row);
+	Position currentPosition = startPos;
+	Direction currentDirection = Direction::N;
 
-	return grid.size();
+	while (currentPosition.IsInGrid())
+	{
+		Position check = currentPosition;
+		check.Advance(currentDirection);
+
+		bool wasObstructed = false;
+		if (check.IsInGrid())
+		{
+			if (grid[check.row][check.col] == Symbols::OBSTRUCTION)
+			{
+				wasObstructed = true;
+				currentDirection = TurnRight(currentDirection);
+			}
+		}
+
+		if (!wasObstructed)
+		{
+			grid[currentPosition.row][currentPosition.col] = Symbols::VISITED;
+			currentPosition.Advance(currentDirection);
+		}
+	}
+
+	unsigned total = 0;
+	for (unsigned i = 0; i < grid.size(); ++i)
+		for (unsigned j = 0; j < grid[i].size(); ++j)
+			if (grid[i][j] == Symbols::VISITED)
+				++total;
+
+	return total;
 }
 
 int main(int argc, char* argv[])
