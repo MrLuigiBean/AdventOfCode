@@ -15,11 +15,19 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
-enum class Operator { ADD, MULTIPLY };
+enum class Operator { ADD, MULTIPLY, CONCAT };
 
 inline std::ostream& operator<<(std::ostream& stream, const Operator& op)
 {
-	return stream << (op == Operator::ADD ? '+' : '*');
+	const char* ch = "";
+	switch (op)
+	{
+	case Operator::ADD:      ch = "+";  break;
+	case Operator::MULTIPLY: ch = "*";  break;
+	case Operator::CONCAT:   ch = "||"; break;
+	default:                            break;
+	}
+	return stream << ch;
 }
 
 using BigNumber = unsigned long long;
@@ -55,6 +63,9 @@ struct Equation
 			{
 			case Operator::ADD:      total += number; break;
 			case Operator::MULTIPLY: total *= number; break;
+			case Operator::CONCAT:
+				total = std::stoull(std::to_string(total) + std::to_string(number));
+				break;
 			default: break;
 			}
 		}
@@ -64,7 +75,6 @@ struct Equation
 
 inline std::ostream& operator<<(std::ostream& stream, const Equation& eqn)
 {
-	// return stream << "testValue: " << eqn.testValue << ", numbers: " << eqn.numbers;
 	stream << eqn.testValue << ": ";
 	stream << eqn.numbers[0];
 	for (unsigned i = 1; i < eqn.numbers.size(); ++i)
@@ -72,7 +82,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Equation& eqn)
 	return stream;
 }
 
-void FlagTrueEquations(std::vector<Equation>& equations)
+void OldFlagTrueEquations(std::vector<Equation>& equations)
 {
 	for (Equation& equation : equations)
 	{
@@ -99,6 +109,26 @@ void FlagTrueEquations(std::vector<Equation>& equations)
 				equation.isTrueEquation = true;
 				break;
 			}
+		}
+	}
+}
+
+void FlagTrueEquations(std::vector<Equation>& equations)
+{
+	for (Equation& equation : equations)
+	{
+		std::vector<Operator> operators(equation.numbers.size() - 1, Operator::CONCAT);
+
+		// for each combination (???) of operators
+		//   test to see if match
+
+		if (equation.ComputeEquation(operators) == equation.testValue)
+		{
+			PRINT(equation.testValue);
+			PRINT(equation.numbers);
+			PRINT(operators);
+			equation.isTrueEquation = true;
+			break;
 		}
 	}
 }
