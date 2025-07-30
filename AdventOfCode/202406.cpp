@@ -103,21 +103,26 @@ bool ReadDataFromFile(const std::string& filename, Grid& grid)
 	return true;
 }
 
-int Process(Grid& grid)
+Position FindAndClearStartPosition(Grid& grid)
 {
-	Position startPos;
-
+	Position result;
 	for (unsigned i = 0; i < grid.size(); ++i)
 	{
 		for (unsigned j = 0; j < grid[i].size(); ++j)
 		{
 			if (grid[i][j] == Symbols::START)
 			{
-				startPos = Position{ .row = i, .col = j };
+				result = Position{ .row = i, .col = j };
 				grid[i][j] = Symbols::EMPTY;
 			}
 		}
 	}
+	return result;
+}
+
+int CountVisitedPositions(Grid& grid)
+{
+	Position startPos = FindAndClearStartPosition(grid);
 
 	Position currentPosition = startPos;
 	Direction currentDirection = Direction::N;
@@ -170,7 +175,7 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, grid))
 		return -1;
 
-	int total = Process(grid);
+	int total = CountVisitedPositions(grid);
 	PRINT(total);
 
 	return 0;
