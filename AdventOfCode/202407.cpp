@@ -22,9 +22,11 @@ inline std::ostream& operator<<(std::ostream& stream, const Operator& op)
 	return stream << (op == Operator::ADD ? '+' : '*');
 }
 
+using BigNumber = unsigned long long;
+
 struct Equation
 {
-	unsigned testValue = 0; // 2952021131 is too low
+	BigNumber testValue = 0;
 	std::vector<unsigned> numbers;
 	bool isTrueEquation = false;
 
@@ -41,13 +43,13 @@ struct Equation
 		numbers.shrink_to_fit();
 	}
 
-	unsigned ComputeEquation(const std::vector<Operator>& operators) const
+	BigNumber ComputeEquation(const std::vector<Operator>& operators) const
 	{
-		unsigned total = numbers.front();
+		BigNumber total = numbers.front();
 		for (unsigned i = 0; i < numbers.size() - 1; ++i)
 		{
 			Operator op = operators[i];
-			unsigned number = numbers[i + 1];
+			BigNumber number = numbers[i + 1];
 
 			switch (op)
 			{
@@ -76,8 +78,8 @@ void FlagTrueEquations(std::vector<Equation>& equations)
 	{
 		std::vector<Operator> operators(equation.numbers.size() - 1);
 
-		unsigned totalCombinations = 1 << operators.size();
-		for (unsigned currentCombination = 0; currentCombination < totalCombinations; ++currentCombination)
+		BigNumber totalCombinations = 1 << operators.size();
+		for (BigNumber currentCombination = 0; currentCombination < totalCombinations; ++currentCombination)
 		{
 			for (unsigned i = 0; i < operators.size(); ++i)
 			{
@@ -137,7 +139,7 @@ int main(int argc, char* argv[])
 
 	FlagTrueEquations(equations);
 
-	unsigned total = 0;
+	BigNumber total = 0;
 
 	auto newEnd = std::remove_if(equations.begin(), equations.end(), [](const Equation& eqn)
 		{ return !eqn.isTrueEquation; });
