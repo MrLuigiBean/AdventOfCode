@@ -121,7 +121,6 @@ void FlagTrueEquations(std::vector<Equation>& equations)
 
 		// for each combination (???) of operators
 		//   test to see if match
-		;
 
 		if (equation.ComputeEquation(operators) == equation.testValue)
 		{
