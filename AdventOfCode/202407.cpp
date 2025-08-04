@@ -16,6 +16,7 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 }
 
 enum class Operator { ADD, MULTIPLY, CONCAT };
+constexpr static unsigned numOfOperatorTypes = 3;
 
 inline std::ostream& operator<<(std::ostream& stream, const Operator& op)
 {
@@ -113,22 +114,46 @@ void OldFlagTrueEquations(std::vector<Equation>& equations)
 	}
 }
 
+static constexpr BigNumber Pow(unsigned base, unsigned power)
+{
+	BigNumber total = 1;
+	while (power--)
+		total *= base;
+	return total;
+}
+
+static void GenerateOperatorsFromCombination(std::vector<Operator>& ops, BigNumber combination)
+{
+	// Since there are 3 operators available (numOfOperatorTypes = 3),
+	// place the corresponding operators in the array using the
+	// ("hundreds", "tens", "ones" places in base 3) in `currentCombination`.
+
+	// e.g. If, currentCombination = 4, ops.size() = 3, then:
+	// ops[0] = the value of "nine's" place in 4 = 0
+	// ops[0] = the value of "three's" place in 4 = 1
+	// ops[1] = the value of ones place in 4 = 1
+
+	for (unsigned i = 0; i < ops.size(); ++i)
+	{
+		auto n_th_place = ops.size() - 1 - i;
+		auto op = (combination / Pow(numOfOperatorTypes, n_th_place)) % numOfOperatorTypes;
+		ops[i] = static_cast<Operator>(op);
+	}
+}
+
 void FlagTrueEquations(std::vector<Equation>& equations)
 {
 	for (Equation& equation : equations)
 	{
-		std::vector<Operator> operators(equation.numbers.size() - 1, Operator::CONCAT);
+		std::vector<Operator> ops(equation.numbers.size() - 1);
 
-		// for each combination (???) of operators
-		//   test to see if match
+		BigNumber totalCombinations = Pow(numOfOperatorTypes, ops.size());
 
-		if (equation.ComputeEquation(operators) == equation.testValue)
+		for (BigNumber currentCombination = 0; currentCombination < totalCombinations; ++currentCombination)
 		{
-			PRINT(equation.testValue);
-			PRINT(equation.numbers);
-			PRINT(operators);
-			equation.isTrueEquation = true;
-			break;
+			GenerateOperatorsFromCombination(ops, currentCombination);
+
+			// test operator combination here
 		}
 	}
 }
