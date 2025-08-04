@@ -153,7 +153,31 @@ void FlagTrueEquations(std::vector<Equation>& equations)
 		{
 			GenerateOperatorsFromCombination(ops, currentCombination);
 
-			// test operator combination here
+			BigNumber total = equation.numbers.front();
+
+			for (unsigned i = 0; i < ops.size(); ++i)
+			{
+				unsigned number = equation.numbers[i + 1];
+				switch (ops[i])
+				{
+				case Operator::ADD:      total += number; break;
+				case Operator::MULTIPLY: total *= number; break;
+				case Operator::CONCAT:   total = std::stoull(std::to_string(total) + std::to_string(number)); break;
+				default:                 break;
+				}
+
+				// since all operators only increase the value, stop this sequence
+				// of operators if it already exceeds the expected total
+				if (total > equation.testValue)
+					break;
+			}
+
+			// if a match is found, great. no need to keep trying out more combinations.
+			if (total == equation.testValue)
+			{
+				equation.isTrueEquation = true;
+				break;
+			}
 		}
 	}
 }
