@@ -1,6 +1,6 @@
 #include <iostream>
 #include <fstream>
-#include <set>
+#include <map>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -8,6 +8,15 @@
 #define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
 using Grid = std::vector<std::string>;
+using Coord = std::pair<int, int>;
+
+constexpr char EMPTY_SYMBOL = '.';
+
+template <typename T, typename U>
+inline std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& pair)
+{
+	return stream << '(' << pair.first << ',' << pair.second << ')';
+}
 
 template <typename T>
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
@@ -51,6 +60,26 @@ bool ReadDataFromFile(const std::string& filename, Grid& grid)
 	return true;
 }
 
+int CountBoundedAntinodes(const Grid& grid)
+{
+	std::map<char, std::vector<Coord>> frequencyLists;
+
+	// store coordinates of all antennas
+	for (unsigned i = 0; i < grid.size(); ++i)
+		for (unsigned j = 0; j < grid[i].size(); ++j)
+			if (grid[i][j] != EMPTY_SYMBOL)
+				frequencyLists[grid[i][j]].emplace_back(i, j);
+
+	for (const auto& frequencyList : frequencyLists)
+	{
+		printf("%c: ", frequencyList.first);
+		std::cout << frequencyList.second;
+		printf("\n");
+	}
+
+	return grid.size();
+}
+
 int main(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
@@ -67,6 +96,8 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, grid))
 		return -1;
 
-	printf("hello world!\n");
+	int total = CountBoundedAntinodes(grid);
+	PRINT(total);
+
 	return 0;
 }
