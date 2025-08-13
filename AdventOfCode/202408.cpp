@@ -1,6 +1,7 @@
 #include <iostream>
 #include <fstream>
 #include <map>
+#include <set>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -25,6 +26,16 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	for (unsigned i = 0; i < vec.size(); ++i)
 		stream << vec[i] << ((i < vec.size() - 1) ? "," : "");
 	return stream << ']';
+}
+
+Coord operator+(const Coord& a, const Coord& b)
+{
+	return { a.first + b.first, a.second + b.second };
+}
+
+Coord operator-(const Coord& a, const Coord& b)
+{
+	return { a.first - b.first, a.second - b.second };
 }
 
 bool ReadDataFromFile(const std::string& filename, Grid& grid)
@@ -70,6 +81,16 @@ int CountBoundedAntinodes(const Grid& grid)
 			if (grid[i][j] != EMPTY_SYMBOL)
 				frequencyLists[grid[i][j]].emplace_back(i, j);
 
+	auto IsInsideBounds = [&grid](const Coord& coord)
+		{
+			int size = grid.size();
+			return 0 <= coord.first && coord.first <= size - 1 &&
+				0 <= coord.second && coord.second <= size - 1;
+		};
+
+	std::set<Coord> total;
+	// Grid gridCopy = grid;
+
 	for (const auto& frequencyList : frequencyLists)
 	{
 		printf("%c: ", frequencyList.first);
@@ -80,20 +101,59 @@ int CountBoundedAntinodes(const Grid& grid)
 		{
 			for (unsigned j = i + 1; j < coordinates.size(); ++j)
 			{
-				auto first = coordinates[i];
-				auto second = coordinates[j];
-				PRINT(first);
-				PRINT(second);
-				printf("\n");
+				const Coord& first = coordinates[i];
+				const Coord& second = coordinates[j];
 
-				//do computation :)
+				Coord translation = second - first; // final - initial
+
+				{
+					Coord anti1 = second + translation;
+					PRINT(anti1);
+					if (IsInsideBounds(anti1))
+					{
+						total.emplace(anti1);
+						std::cout << anti1 << " was in bounds.\n";
+						// auto& ch = gridCopy[anti1.first][anti1.second];
+						// if (ch == '.')
+						// 	ch = '#';
+						// else
+						// 	std::cout << "WAIT " << anti1 << " was " << ch << '\n';
+					}
+					else
+					{
+						std::cout << anti1 << " was *NOT* in bounds.\n";
+					}
+				}
+
+				{
+					Coord anti2 = first - translation;
+					PRINT(anti2);
+					if (IsInsideBounds(anti2))
+					{
+						total.insert(anti2);
+						std::cout << anti2 << " was in bounds.\n";
+						// auto& ch = gridCopy[anti2.first][anti2.second];
+						// if (ch == '.')
+						// 	ch = '#';
+						// else
+						// 	std::cout << "WAIT " << anti2 << " was " << ch << '\n';
+					}
+					else
+					{
+						std::cout << anti2 << " was *NOT* in bounds.\n";
+					}
+				}
+				printf("\n");
 			}
 		}
 
 		printf("\n");
 	}
 
-	return grid.size();
+	// for (const auto& e : gridCopy)
+	// 	std::cout << e << '\n';
+
+	return total.size();
 }
 
 int main(int argc, char* argv[])
