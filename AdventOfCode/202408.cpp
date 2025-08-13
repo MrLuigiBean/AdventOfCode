@@ -2,7 +2,6 @@
 #include <fstream>
 #include <map>
 #include <set>
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -88,14 +87,11 @@ int CountBoundedAntinodes(const Grid& grid)
 				0 <= coord.second && coord.second <= size - 1;
 		};
 
+	// disallow duplicate antinodes at the same coordinates
 	std::set<Coord> total;
-	// Grid gridCopy = grid;
 
 	for (const auto& frequencyList : frequencyLists)
 	{
-		printf("%c: ", frequencyList.first);
-		std::cout << frequencyList.second << '\n';
-
 		const std::vector<Coord>& coordinates = frequencyList.second;
 		for (unsigned i = 0; i < coordinates.size() - 1; ++i)
 		{
@@ -103,55 +99,18 @@ int CountBoundedAntinodes(const Grid& grid)
 			{
 				const Coord& first = coordinates[i];
 				const Coord& second = coordinates[j];
+				const Coord& translation = second - first; // final - initial
 
-				Coord translation = second - first; // final - initial
+				Coord antinode1 = second + translation;
+				if (IsInsideBounds(antinode1))
+					total.emplace(antinode1);
 
-				{
-					Coord anti1 = second + translation;
-					PRINT(anti1);
-					if (IsInsideBounds(anti1))
-					{
-						total.emplace(anti1);
-						std::cout << anti1 << " was in bounds.\n";
-						// auto& ch = gridCopy[anti1.first][anti1.second];
-						// if (ch == '.')
-						// 	ch = '#';
-						// else
-						// 	std::cout << "WAIT " << anti1 << " was " << ch << '\n';
-					}
-					else
-					{
-						std::cout << anti1 << " was *NOT* in bounds.\n";
-					}
-				}
-
-				{
-					Coord anti2 = first - translation;
-					PRINT(anti2);
-					if (IsInsideBounds(anti2))
-					{
-						total.insert(anti2);
-						std::cout << anti2 << " was in bounds.\n";
-						// auto& ch = gridCopy[anti2.first][anti2.second];
-						// if (ch == '.')
-						// 	ch = '#';
-						// else
-						// 	std::cout << "WAIT " << anti2 << " was " << ch << '\n';
-					}
-					else
-					{
-						std::cout << anti2 << " was *NOT* in bounds.\n";
-					}
-				}
-				printf("\n");
+				Coord antinode2 = first - translation;
+				if (IsInsideBounds(antinode2))
+					total.emplace(antinode2);
 			}
 		}
-
-		printf("\n");
 	}
-
-	// for (const auto& e : gridCopy)
-	// 	std::cout << e << '\n';
 
 	return total.size();
 }
