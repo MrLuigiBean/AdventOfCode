@@ -73,7 +73,23 @@ int CountBoundedAntinodes(const Grid& grid)
 	for (const auto& frequencyList : frequencyLists)
 	{
 		printf("%c: ", frequencyList.first);
-		std::cout << frequencyList.second;
+		std::cout << frequencyList.second << '\n';
+
+		const std::vector<Coord>& coordinates = frequencyList.second;
+		for (unsigned i = 0; i < coordinates.size() - 1; ++i)
+		{
+			for (unsigned j = i + 1; j < coordinates.size(); ++j)
+			{
+				auto first = coordinates[i];
+				auto second = coordinates[j];
+				PRINT(first);
+				PRINT(second);
+				printf("\n");
+
+				//do computation :)
+			}
+		}
+
 		printf("\n");
 	}
 
