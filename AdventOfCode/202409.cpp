@@ -9,10 +9,13 @@
 using DiskMap = std::string;
 
 /// @brief The contents of a block are represented by IDs.
-using Block = char;
+using Block = int;
 
 /// @brief The ID used by free blocks.
-constexpr Block freeBlockID = '.';
+constexpr Block freeBlockID = -1;
+
+/// @brief A type used to represent very large integers.
+using BigNumber = unsigned long long;
 
 /// @brief Prints a std::vector to a given stream.
 /// @tparam T The std::vector's value_type.
@@ -52,7 +55,7 @@ bool ReadDataFromFile(const std::string& filename, DiskMap& diskMap)
 std::vector<Block> BuildBlocks(const DiskMap& diskMap)
 {
 	std::vector<Block> blocks;
-	Block blockID = '0';
+	Block blockID = 0;
 
 	for (unsigned i = 0; i < diskMap.size(); ++i)
 	{
@@ -81,14 +84,9 @@ void MoveBlocks(std::vector<Block>& blocks)
 	if (freeBlockIt == blocks.end())
 		return;
 
-	PRINT(freeBlockIt - blocks.begin());
-
 	// reverse search + casting reverse iterators are a pain :)
 	// let's just assume the last character is always a non-empty block :)
 	auto lastBlockIt = blocks.end() - 1;
-
-	PRINT(blocks.size());
-	PRINT(lastBlockIt - blocks.begin());
 
 	while (freeBlockIt < lastBlockIt)
 	{
@@ -99,6 +97,17 @@ void MoveBlocks(std::vector<Block>& blocks)
 		do { ++freeBlockIt; } while (*freeBlockIt != freeBlockID);
 		do { --lastBlockIt; } while (*lastBlockIt == freeBlockID);
 	}
+}
+
+/// @brief Calculates the checksum of a given series of blocks.
+/// @param blocks The blocks to calculate the checksum for.
+/// @return The checksum from the given blocks.
+BigNumber ComputeChecksum(const std::vector<Block>& blocks)
+{
+	BigNumber checksum = 0;
+	for (unsigned i = 0; i < blocks.size(); ++i)
+		checksum += (blocks[i] == freeBlockID ? 0 : i * blocks[i]);
+	return checksum;
 }
 
 /// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
@@ -118,15 +127,13 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, diskMap))
 		return -1;
 
-	PRINT(diskMap);
-
 	std::vector<Block> blocks = BuildBlocks(diskMap);
-
-	PRINT(blocks);
 
 	MoveBlocks(blocks);
 
-	PRINT(blocks);
+	BigNumber checksum = ComputeChecksum(blocks);
+
+	PRINT(checksum);
 
 	return 0;
 }
