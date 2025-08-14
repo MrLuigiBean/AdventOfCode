@@ -10,12 +10,18 @@
 /// @brief The grid of characters that store all location information from a file.
 using Grid = std::vector<std::string>;
 
+/// @brief The symbol used to represent empty locations.
+constexpr char EMPTY_SYMBOL = '.';
+
+/// @brief Whether to account for resonant harmonics. Used to separate Part 1 from Part 2.
+constexpr bool accountForHarmonics = false;
+
 /// @brief Represents the x and y coordinate a location in the grid can have.
 struct Coord
 {
 	/// @brief The row of this coordinate.
 	int row = 0;
-	
+
 	/// @brief The column of this coordinate.
 	int col = 0;
 
@@ -27,7 +33,7 @@ struct Coord
 	/// @param col_ The value of col.
 	Coord(int row_, int col_) : row{ row_ }, col{ col_ } {}
 
-	/// @brief Adds this and another coordinates together.
+	/// @brief Adds this and another coordinate together.
 	/// @param other The other coordinate.
 	/// @return A new coordinate created from element-wise addition.
 	Coord operator+(const Coord& other) const
@@ -57,9 +63,6 @@ struct Coord
 		return (row == other.row) ? (col < other.col) : (row < other.row);
 	}
 };
-
-/// @brief The symbol used to represent empty locations.
-constexpr char EMPTY_SYMBOL = '.';
 
 /// @brief Prints a coordinate to a given stream.
 /// @param stream The output stream to print to.
@@ -155,13 +158,20 @@ int CountBoundedAntinodes(const Grid& grid)
 				const Coord& second = coordinates[j];
 				const Coord& translation = second - first; // final - initial
 
-				Coord antinode1 = second + translation;
-				if (IsInsideBounds(antinode1))
-					total.emplace(antinode1);
+				if (!accountForHarmonics) // Part 1
+				{
+					Coord antinode1 = second + translation;
+					if (IsInsideBounds(antinode1))
+						total.emplace(antinode1);
 
-				Coord antinode2 = first - translation;
-				if (IsInsideBounds(antinode2))
-					total.emplace(antinode2);
+					Coord antinode2 = first - translation;
+					if (IsInsideBounds(antinode2))
+						total.emplace(antinode2);
+				}
+				else // Part 2
+				{
+					;
+				}
 			}
 		}
 	}
