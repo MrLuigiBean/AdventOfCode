@@ -12,7 +12,7 @@ using DiskMap = std::string;
 using Block = char;
 
 /// @brief The ID used by free blocks.
-constexpr char freeBlockID = '.';
+constexpr Block freeBlockID = '.';
 
 /// @brief Prints a std::vector to a given stream.
 /// @tparam T The std::vector's value_type.
@@ -52,7 +52,7 @@ bool ReadDataFromFile(const std::string& filename, DiskMap& diskMap)
 std::vector<Block> BuildBlocks(const DiskMap& diskMap)
 {
 	std::vector<Block> blocks;
-	char blockID = '0';
+	Block blockID = '0';
 
 	for (unsigned i = 0; i < diskMap.size(); ++i)
 	{
@@ -92,8 +92,12 @@ void MoveBlocks(std::vector<Block>& blocks)
 
 	while (freeBlockIt < lastBlockIt)
 	{
-		lastBlockIt--; // uhhhh
-		PRINT(blocks);
+		// swap blocks
+		std::swap(*freeBlockIt, *lastBlockIt);
+
+		// update iterators
+		do { ++freeBlockIt; } while (*freeBlockIt != freeBlockID);
+		do { --lastBlockIt; } while (*lastBlockIt == freeBlockID);
 	}
 }
 
