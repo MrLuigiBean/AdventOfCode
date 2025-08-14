@@ -105,10 +105,10 @@ int CountBoundedAntinodes(const Grid& grid)
 	std::map<char, std::vector<Coord>> frequencyLists;
 
 	// store coordinates of all antennas
-	for (unsigned i = 0; i < grid.size(); ++i)
-		for (unsigned j = 0; j < grid[i].size(); ++j)
-			if (grid[i][j] != EMPTY_SYMBOL)
-				frequencyLists[grid[i][j]].emplace_back(i, j);
+	for (unsigned row = 0; row < grid.size(); ++row)
+		for (unsigned col = 0; col < grid[row].size(); ++col)
+			if (grid[row][col] != EMPTY_SYMBOL)
+				frequencyLists[grid[row][col]].emplace_back(row, col);
 
 	auto IsInsideBounds = [&grid](const Coord& coord)
 		{
