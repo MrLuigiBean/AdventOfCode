@@ -14,7 +14,7 @@ using Grid = std::vector<std::string>;
 constexpr char EMPTY_SYMBOL = '.';
 
 /// @brief Whether to account for resonant harmonics. Used to separate Part 1 from Part 2.
-constexpr bool accountForHarmonics = false;
+constexpr bool accountForHarmonics = true;
 
 /// @brief Represents the x and y coordinate a location in the grid can have.
 struct Coord
@@ -41,12 +41,30 @@ struct Coord
 		return { row + other.row, col + other.col };
 	}
 
+	/// @brief Adds another coordinate to itself.
+	/// @param other The other coordinate.
+	/// @return A reference to this object after being modified from addition.
+	Coord& operator+=(const Coord& other)
+	{
+		*this = *this + other;
+		return *this;
+	}
+
 	/// @brief Subtracts another coordinate from this.
 	/// @param other The other coordinate to subtract.
 	/// @return A new coordinate created from subtracting the other from this object.
 	Coord operator-(const Coord& other) const
 	{
 		return { row - other.row, col - other.col };
+	}
+
+	/// @brief Subtracts another coordinate from itself.
+	/// @param other The other coordinate.
+	/// @return A reference to this object after being modified from subtraction.
+	Coord& operator-=(const Coord& other)
+	{
+		*this = *this - other;
+		return *this;
 	}
 
 	/// @brief Compares two objects using their row and col.
@@ -170,7 +188,21 @@ int CountBoundedAntinodes(const Grid& grid)
 				}
 				else // Part 2
 				{
-					;
+					// the antennas themselves count too
+					total.emplace(first);
+					total.emplace(second);
+
+					for (Coord antinode1 = second + translation; IsInsideBounds(antinode1);
+						antinode1 += translation)
+					{
+						total.emplace(antinode1);
+					}
+
+					for (Coord antinode2 = first - translation; IsInsideBounds(antinode2);
+						antinode2 -= translation)
+					{
+						total.emplace(antinode2);
+					}
 				}
 			}
 		}
