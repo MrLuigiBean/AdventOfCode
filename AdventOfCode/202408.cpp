@@ -7,17 +7,32 @@
 
 #define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
+/// @brief The grid of characters that store all location information from a file.
 using Grid = std::vector<std::string>;
+
+/// @brief Represents the x and y coordinate a location in the grid can have.
 using Coord = std::pair<int, int>;
 
+/// @brief The symbol used to represent empty locations.
 constexpr char EMPTY_SYMBOL = '.';
 
+/// @brief Prints a generic pair to a given stream.
+/// @tparam T The type of the first element of the pair.
+/// @tparam U The type of the second element of the pair.
+/// @param stream The output stream to print to.
+/// @param pair The pair to display using the given stream.
+/// @return The modified stream with the pair's information printed.
 template <typename T, typename U>
 inline std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& pair)
 {
 	return stream << '(' << pair.first << ',' << pair.second << ')';
 }
 
+/// @brief Prints a std::vector to a given stream.
+/// @tparam T The std::vector's value_type.
+/// @param stream The output stream to print to.
+/// @param vec The vector to display using the given stream.
+/// @return The modified stream with the vector's information printed.
 template <typename T>
 inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 {
@@ -27,16 +42,28 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
+/// @brief Adds two coordinates together.
+/// @param a The first coordinate.
+/// @param b The second coordinate.
+/// @return A new coordinate created from element-wise addition.
 Coord operator+(const Coord& a, const Coord& b)
 {
 	return { a.first + b.first, a.second + b.second };
 }
 
+/// @brief Subtracts a coordinate from another.
+/// @param a The first coordinate.
+/// @param b The second coordinate.
+/// @return A new coordinate created from subtracting the second from the first.
 Coord operator-(const Coord& a, const Coord& b)
 {
 	return { a.first - b.first, a.second - b.second };
 }
 
+/// @brief Reads and stores information from the file into the given Grid.
+/// @param filename The name of the file to obtain data from.
+/// @param grid The grid that will be filled in with the information from the file.
+/// @return true on success, false otherwise.
 bool ReadDataFromFile(const std::string& filename, Grid& grid)
 {
 	std::fstream file(filename);
@@ -70,6 +97,9 @@ bool ReadDataFromFile(const std::string& filename, Grid& grid)
 	return true;
 }
 
+/// @brief Counts the number of antinodes in the grid.
+/// @param grid The grid with information on the locations of antennas.
+/// @return The number of antinodes within the grid's boundaries.
 int CountBoundedAntinodes(const Grid& grid)
 {
 	std::map<char, std::vector<Coord>> frequencyLists;
@@ -115,6 +145,7 @@ int CountBoundedAntinodes(const Grid& grid)
 	return total.size();
 }
 
+/// @brief Counts the number of antinodes from data in a given file.
 int main(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
