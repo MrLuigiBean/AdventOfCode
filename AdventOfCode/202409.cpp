@@ -8,6 +8,9 @@
 /// @brief A string of digits representing files and empty blocks.
 using DiskMap = std::string;
 
+/// @brief The contents of a block are represented by IDs.
+using Block = char;
+
 /// @brief Prints a std::vector to a given stream.
 /// @tparam T The std::vector's value_type.
 /// @param stream The output stream to print to.
@@ -40,7 +43,33 @@ bool ReadDataFromFile(const std::string& filename, DiskMap& diskMap)
 	return true;
 }
 
-/// @brief 
+/// @brief Constructs blocks of free space and files using a given disk map.
+/// @param diskMap The disk map used to build the blocks of files and free space.
+/// @return A vector of blocks and empty space, according to the given disk map.
+std::vector<Block> BuildBlocks(const DiskMap& diskMap)
+{
+	std::vector<Block> blocks;
+	constexpr char freeBlockID = '.';
+	char blockID = '0';
+
+	for (unsigned i = 0; i < diskMap.size(); ++i)
+	{
+		int size = diskMap[i] - '0';
+
+		while (size--)
+			blocks.emplace_back(i % 2 ? freeBlockID : blockID);
+
+		// get ready for next file (which has a new ID = ID + 1)
+		if (i % 2)
+			++blockID;
+	}
+
+	blocks.shrink_to_fit();
+
+	return blocks;
+}
+
+/// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
 int main(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
@@ -58,6 +87,10 @@ int main(int argc, char* argv[])
 		return -1;
 
 	PRINT(diskMap);
+
+	std::vector<Block> blocks = BuildBlocks(diskMap);
+
+	PRINT(blocks);
 
 	return 0;
 }
