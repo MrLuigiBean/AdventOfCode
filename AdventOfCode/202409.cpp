@@ -11,6 +11,9 @@ using DiskMap = std::string;
 /// @brief The contents of a block are represented by IDs.
 using Block = char;
 
+/// @brief The ID used by free blocks.
+constexpr char freeBlockID = '.';
+
 /// @brief Prints a std::vector to a given stream.
 /// @tparam T The std::vector's value_type.
 /// @param stream The output stream to print to.
@@ -49,7 +52,6 @@ bool ReadDataFromFile(const std::string& filename, DiskMap& diskMap)
 std::vector<Block> BuildBlocks(const DiskMap& diskMap)
 {
 	std::vector<Block> blocks;
-	constexpr char freeBlockID = '.';
 	char blockID = '0';
 
 	for (unsigned i = 0; i < diskMap.size(); ++i)
@@ -67,6 +69,32 @@ std::vector<Block> BuildBlocks(const DiskMap& diskMap)
 	blocks.shrink_to_fit();
 
 	return blocks;
+}
+
+/// @brief Moves blocks to leftmost free spaces until none are left.
+/// @param blocks The blocks to modify.
+void MoveBlocks(std::vector<Block>& blocks)
+{
+	auto freeBlockIt = std::find(blocks.begin(), blocks.end(), freeBlockID);
+
+	// no free blocks, no point
+	if (freeBlockIt == blocks.end())
+		return;
+
+	PRINT(freeBlockIt - blocks.begin());
+
+	// reverse search + casting reverse iterators are a pain :)
+	// let's just assume the last character is always a non-empty block :)
+	auto lastBlockIt = blocks.end() - 1;
+
+	PRINT(blocks.size());
+	PRINT(lastBlockIt - blocks.begin());
+
+	while (freeBlockIt < lastBlockIt)
+	{
+		lastBlockIt--; // uhhhh
+		PRINT(blocks);
+	}
 }
 
 /// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
@@ -89,6 +117,10 @@ int main(int argc, char* argv[])
 	PRINT(diskMap);
 
 	std::vector<Block> blocks = BuildBlocks(diskMap);
+
+	PRINT(blocks);
+
+	MoveBlocks(blocks);
 
 	PRINT(blocks);
 
