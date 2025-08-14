@@ -11,21 +11,63 @@
 using Grid = std::vector<std::string>;
 
 /// @brief Represents the x and y coordinate a location in the grid can have.
-using Coord = std::pair<int, int>;
+struct Coord
+{
+	/// @brief The row of this coordinate.
+	int row = 0;
+	
+	/// @brief The column of this coordinate.
+	int col = 0;
+
+	/// @brief Assigns 0 to row and col.
+	Coord() = default;
+
+	/// @brief Assignes the row and col of this object.
+	/// @param row_ The value of row.
+	/// @param col_ The value of col.
+	Coord(int row_, int col_) : row{ row_ }, col{ col_ } {}
+
+	/// @brief Adds this and another coordinates together.
+	/// @param other The other coordinate.
+	/// @return A new coordinate created from element-wise addition.
+	Coord operator+(const Coord& other) const
+	{
+		return { row + other.row, col + other.col };
+	}
+
+	/// @brief Subtracts another coordinate from this.
+	/// @param other The other coordinate to subtract.
+	/// @return A new coordinate created from subtracting the other from this object.
+	Coord operator-(const Coord& other) const
+	{
+		return { row - other.row, col - other.col };
+	}
+
+	/// @brief Compares two objects using their row and col.
+	/// @param other The other object to compare to.
+	/// @return true Compares row from both objects. In the event of a tie, col is compared.
+	bool operator<(const Coord& other) const
+	{
+		// if (row == other.row)
+		// 	return col < other.col;
+		// else
+		// 	return row < other.row;
+
+		// ^ same as this v
+		return (row == other.row) ? (col < other.col) : (row < other.row);
+	}
+};
 
 /// @brief The symbol used to represent empty locations.
 constexpr char EMPTY_SYMBOL = '.';
 
-/// @brief Prints a generic pair to a given stream.
-/// @tparam T The type of the first element of the pair.
-/// @tparam U The type of the second element of the pair.
+/// @brief Prints a coordinate to a given stream.
 /// @param stream The output stream to print to.
-/// @param pair The pair to display using the given stream.
-/// @return The modified stream with the pair's information printed.
-template <typename T, typename U>
-inline std::ostream& operator<<(std::ostream& stream, const std::pair<T, U>& pair)
+/// @param coord The coordinates to display using the given stream.
+/// @return The modified stream with the coordinate's information printed.
+inline std::ostream& operator<<(std::ostream& stream, const Coord& coord)
 {
-	return stream << '(' << pair.first << ',' << pair.second << ')';
+	return stream << '(' << coord.row << ',' << coord.col << ')';
 }
 
 /// @brief Prints a std::vector to a given stream.
@@ -40,24 +82,6 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	for (unsigned i = 0; i < vec.size(); ++i)
 		stream << vec[i] << ((i < vec.size() - 1) ? "," : "");
 	return stream << ']';
-}
-
-/// @brief Adds two coordinates together.
-/// @param a The first coordinate.
-/// @param b The second coordinate.
-/// @return A new coordinate created from element-wise addition.
-Coord operator+(const Coord& a, const Coord& b)
-{
-	return { a.first + b.first, a.second + b.second };
-}
-
-/// @brief Subtracts a coordinate from another.
-/// @param a The first coordinate.
-/// @param b The second coordinate.
-/// @return A new coordinate created from subtracting the second from the first.
-Coord operator-(const Coord& a, const Coord& b)
-{
-	return { a.first - b.first, a.second - b.second };
 }
 
 /// @brief Reads and stores information from the file into the given Grid.
@@ -113,8 +137,8 @@ int CountBoundedAntinodes(const Grid& grid)
 	auto IsInsideBounds = [&grid](const Coord& coord)
 		{
 			int size = grid.size();
-			return 0 <= coord.first && coord.first <= size - 1 &&
-				0 <= coord.second && coord.second <= size - 1;
+			return 0 <= coord.row && coord.row <= size - 1 &&
+				0 <= coord.col && coord.col <= size - 1;
 		};
 
 	// disallow duplicate antinodes at the same coordinates
