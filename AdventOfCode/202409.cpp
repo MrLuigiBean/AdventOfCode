@@ -5,6 +5,9 @@
 
 #define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
+constexpr bool isPart1 = true;
+constexpr bool isPart2 = false;
+
 /// @brief A string of digits representing files and empty blocks.
 using DiskMap = std::string;
 
@@ -123,17 +126,29 @@ int main(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
+	if (isPart1 && isPart2)
+	{
+		printf("Both Part 1 and Part 2 are active - please choose only one.\n");
+		return -1;
+	}
+
 	DiskMap diskMap;
 	if (!ReadDataFromFile(filename, diskMap))
 		return -1;
 
-	std::vector<Block> blocks = BuildBlocks(diskMap);
+	if (isPart1)
+	{
+		std::vector<Block> blocks = BuildBlocks(diskMap);
 
-	MoveBlocks(blocks);
+		MoveBlocks(blocks);
 
-	BigNumber checksum = ComputeChecksum(blocks);
+		BigNumber checksum = ComputeChecksum(blocks);
 
-	PRINT(checksum);
+		PRINT(checksum);
+	}
+	else if (isPart2)
+	{
+	}
 
 	return 0;
 }
