@@ -5,8 +5,11 @@
 
 #define PRINT(x) std::cout << #x << ": " << (x) << "\n"
 
-constexpr bool isPart1 = true;
-constexpr bool isPart2 = false;
+/// @brief Activates Part 1's solution.
+constexpr bool isPart1 = false;
+
+/// @brief Activates Part 2's solution.
+constexpr bool isPart2 = true;
 
 /// @brief A string of digits representing files and empty blocks.
 using DiskMap = std::string;
@@ -19,6 +22,39 @@ constexpr Block freeBlockID = -1;
 
 /// @brief A type used to represent very large integers.
 using BigNumber = unsigned long long;
+
+/// @brief Represents a span of file blocks in a DiskMap.
+struct FileSpan
+{
+	/// @brief The ID of a file.
+	int id = 0;
+
+	/// @brief The index of the starting block of this file in the DiskMap.
+	int offset = 0;
+
+	/// @brief The number of blocks this file has.
+	int size = 0;
+};
+
+/// @brief Represents a span of free space blocks in a DiskMap.
+struct FreeSpaceSpan
+{
+	/// @brief The index of the starting block of this free space in the DiskMap.
+	int offset = 0;
+
+	/// @brief The number of blocks this free space has.
+	int size = 0;
+};
+
+/// @brief The lists created by GenerateDiskMapLists().
+struct DiskMapLists
+{
+	/// @brief A list of files in the given DiskMap.
+	std::vector<FileSpan> files;
+
+	/// @brief A list of free spaces in the given DiskMap.
+	std::vector<FreeSpaceSpan> freeSpaces;
+}; // structured binding wahoo!
 
 /// @brief Prints a std::vector to a given stream.
 /// @tparam T The std::vector's value_type.
@@ -113,6 +149,35 @@ BigNumber ComputeChecksum(const std::vector<Block>& blocks)
 	return checksum;
 }
 
+/// @brief Generates the file and free space lists from a given disk map.
+/// @param diskMap The disk map to create the lists from.
+/// @return (Structured binding is recommended.) The lists generated from the disk map.
+DiskMapLists GenerateDiskMapLists(const DiskMap& diskMap)
+{
+	std::vector<FreeSpaceSpan> freeSpaces;
+	std::vector<FileSpan> files;
+	bool isFile = true;
+	int offset = 0;
+	int id = 0;
+
+	for (const auto ch : diskMap)
+	{
+		int size = ch - '0';
+
+		if (isFile)
+			files.emplace_back(FileSpan{ id++, offset, size });
+		else
+			freeSpaces.emplace_back(FreeSpaceSpan{ offset, size });
+
+		offset += size;
+
+		// prepare for next iteration
+		isFile = !isFile;
+	}
+
+	return { files,  freeSpaces };
+}
+
 /// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
 int main(int argc, char* argv[])
 {
@@ -148,6 +213,17 @@ int main(int argc, char* argv[])
 	}
 	else if (isPart2)
 	{
+		PRINT(diskMap);
+
+		auto [fileList, freeSpaceList](GenerateDiskMapLists(diskMap));
+
+		for (const auto& x : fileList)
+			std::cout << '(' << x.id << ',' << x.offset << ',' << x.size << ")\n";
+
+		printf("\n");
+
+		for (const auto& x : freeSpaceList)
+			std::cout << '(' << x.offset << ',' << x.size << ")\n";
 	}
 
 	return 0;
