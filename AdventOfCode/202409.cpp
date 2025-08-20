@@ -212,6 +212,22 @@ void MoveFiles(std::vector<FileSpan>& files, std::vector<FreeSpaceSpan>& freeSpa
 	}
 }
 
+/// @brief Calculates the checksum of a given series of files.
+/// @param files The list representing files in the disk
+/// @return The checksum computed from the file on disk.
+BigNumber ComputeChecksum(const std::vector<FileSpan>& files)
+{
+	BigNumber total = 0;
+	for (const auto& file : files)
+	{
+		int miniSum = 0;
+		for (int i = 0; i < file.size; ++i)
+			miniSum += file.offset + i;
+		total += file.id * miniSum;
+	}
+	return total;
+}
+
 /// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
 int main(int argc, char* argv[])
 {
@@ -266,6 +282,12 @@ int main(int argc, char* argv[])
 
 		for (const auto& x : fileList)
 			std::cout << '(' << x.id << ',' << x.offset << ',' << x.size << ")\n";
+
+		BigNumber checksum = ComputeChecksum(fileList);
+
+		PRINT(checksum);
+
+		// 5199769575258 is too low! :(
 	}
 
 	return 0;
