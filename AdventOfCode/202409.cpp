@@ -266,7 +266,7 @@ int main(int argc, char* argv[])
 		auto [fileList, freeSpaceList](GenerateDiskMapLists(diskMap));
 
 		MoveFiles(fileList, freeSpaceList);
-		
+
 		std::sort(fileList.begin(), fileList.end(),
 			[](FileSpan& a, FileSpan& b) { return a.offset < b.offset; });
 
