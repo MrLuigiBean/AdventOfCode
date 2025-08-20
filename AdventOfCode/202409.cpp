@@ -220,7 +220,7 @@ BigNumber ComputeChecksum(const std::vector<FileSpan>& files)
 	BigNumber total = 0;
 	for (const auto& file : files)
 	{
-		int miniSum = 0;
+		BigNumber miniSum = 0;
 		for (int i = 0; i < file.size; ++i)
 			miniSum += file.offset + i;
 		total += file.id * miniSum;
@@ -263,31 +263,16 @@ int main(int argc, char* argv[])
 	}
 	else if (isPart2)
 	{
-		PRINT(diskMap);
-
 		auto [fileList, freeSpaceList](GenerateDiskMapLists(diskMap));
-
-		for (const auto& x : fileList)
-			std::cout << '(' << x.id << ',' << x.offset << ',' << x.size << ")\n";
-
-		printf("\n");
-
-		for (const auto& x : freeSpaceList)
-			std::cout << '(' << x.offset << ',' << x.size << ")\n";
 
 		MoveFiles(fileList, freeSpaceList);
 		
 		std::sort(fileList.begin(), fileList.end(),
 			[](FileSpan& a, FileSpan& b) { return a.offset < b.offset; });
 
-		for (const auto& x : fileList)
-			std::cout << '(' << x.id << ',' << x.offset << ',' << x.size << ")\n";
-
 		BigNumber checksum = ComputeChecksum(fileList);
 
 		PRINT(checksum);
-
-		// 5199769575258 is too low! :(
 	}
 
 	return 0;
