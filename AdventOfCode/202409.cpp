@@ -178,6 +178,40 @@ DiskMapLists GenerateDiskMapLists(const DiskMap& diskMap)
 	return { files,  freeSpaces };
 }
 
+/// @brief Moves files in a disjk towards the left-most freespace available.
+/// @param files The list representing files to move in the disk.
+/// @param freeSpaces The list representing available free spaces in the disk.
+void MoveFiles(std::vector<FileSpan>& files, std::vector<FreeSpaceSpan>& freeSpaces)
+{
+	for (int fileIndex = files.size() - 1; fileIndex >= 0; --fileIndex)
+	{
+		FileSpan& file = files[fileIndex];
+
+		for (unsigned freeIndex = 0; freeIndex < freeSpaces.size(); ++freeIndex)
+		{
+			FreeSpaceSpan& freeSpace = freeSpaces[freeIndex];
+
+			// ignore free spaces that are not big enough
+			if (freeSpace.size < file.size)
+				continue;
+
+			// don't bother if the freespace comes later than the file
+			if (file.offset < freeSpace.offset)
+				continue;
+
+			// 'move' the file to the free space
+			file.offset = freeSpace.offset;
+
+			// update the free space
+			freeSpace.offset += file.size;
+			freeSpace.size -= file.size;
+
+			// only one movement - we're done here
+			break;
+		}
+	}
+}
+
 /// @brief Reads in a diskmap from a file, moves blocks to empty spaces and computes the checksum.
 int main(int argc, char* argv[])
 {
@@ -224,6 +258,14 @@ int main(int argc, char* argv[])
 
 		for (const auto& x : freeSpaceList)
 			std::cout << '(' << x.offset << ',' << x.size << ")\n";
+
+		MoveFiles(fileList, freeSpaceList);
+		
+		std::sort(fileList.begin(), fileList.end(),
+			[](FileSpan& a, FileSpan& b) { return a.offset < b.offset; });
+
+		for (const auto& x : fileList)
+			std::cout << '(' << x.id << ',' << x.offset << ',' << x.size << ")\n";
 	}
 
 	return 0;
