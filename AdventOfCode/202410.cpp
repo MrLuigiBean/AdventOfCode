@@ -281,7 +281,7 @@ void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights, std::set<
 	}
 
 	Idx2D neighbours[Directions::TOTAL]{};
-	Trail neighbourTrails[Directions::TOTAL]{};
+	Trail neighbourTrails[Directions::TOTAL]{}; // not sure if I really even need this...
 	int neighbourSize = 0;
 
 	for (int i = 0; i < Directions::TOTAL; ++i)
@@ -314,9 +314,9 @@ void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights, std::set<
 
 	for (int i = 0; i < neighbourSize; ++i)
 	{
-		neighbourTrails[i] = currentTrail;
+		neighbourTrails[i] = currentTrail; // not sure if I really even need this...
 		CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails,
-			neighbourTrails[i], neighbours[i]);
+			neighbourTrails[i] /*currentTrail worked somehow...*/, neighbours[i]);
 	}
 }
 
