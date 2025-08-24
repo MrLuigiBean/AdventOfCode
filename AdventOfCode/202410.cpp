@@ -125,11 +125,8 @@ bool ReadDataFromFile(const std::string& filename, StepHeights& stepHeights)
 }
 
 void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
-	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint, int level)
+	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint)
 {
-	for (int i = 0; i < level; ++i) std::cout << ' ';
-	PRINT(currentPoint);
-
 	int currentHeight = stepHeights[currentPoint.row][currentPoint.col];
 
 	if (currentHeight == 9)
@@ -157,6 +154,7 @@ void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 		// add the neighbour if its valid and its height is the next in the sequence
 		bool isCoordValid = 0 <= neighbour.row && neighbour.row <= static_cast<int>(stepHeights.size()) - 1 &&
 			0 <= neighbour.col && neighbour.col <= static_cast<int>(stepHeights.front().size()) - 1;
+
 		if (isCoordValid)
 		{
 			int neighbourHeight = stepHeights[neighbour.row][neighbour.col];
@@ -167,32 +165,20 @@ void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 	}
 
 	for (int i = 0; i < neighbourSize; ++i)
-	{
-		for (int i = 0; i < level; ++i) std::cout << ' ';
-		std::cout << neighbours[i] << '\n';
-		CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, neighbours[i], level + 1);
-	}
+		CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, neighbours[i]);
 }
 
 int CalculateTrailheadScore(const StepHeights& stepHeights, const Idx2D& startPoint)
 {
 	std::set<Idx2D> endPointsReached;
 
-	CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, startPoint, 0);
-
-	printf("\n\n");
-	for (const auto& thing : endPointsReached)
-		std::cout << thing << '\n';
+	CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, startPoint);
 
 	return endPointsReached.size();
 }
 
 int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 {
-	// PRINT(stepHeights); vvv
-	for (const auto& vec : stepHeights)
-		std::cout << vec << '\n';
-
 	std::vector<Idx2D> startPoints; // initializing trailheads
 	for (unsigned i = 0; i < stepHeights.size(); ++i)
 	{
@@ -202,8 +188,6 @@ int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 				startPoints.emplace_back(i, j);
 		}
 	}
-
-	PRINT(startPoints);
 
 	int totalScore = 0;
 
