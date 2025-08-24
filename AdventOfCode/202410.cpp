@@ -125,10 +125,18 @@ bool ReadDataFromFile(const std::string& filename, StepHeights& stepHeights)
 }
 
 void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
-	std::set<Idx2D>& endPointsReached, const Idx2D& point, int level)
+	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint, int level)
 {
 	for (int i = 0; i < level; ++i) std::cout << ' ';
-	PRINT(point);
+	PRINT(currentPoint);
+
+	int currentHeight = stepHeights[currentPoint.row][currentPoint.col];
+
+	if (currentHeight == 9)
+	{
+		endPointsReached.insert(currentPoint);
+		return;
+	}
 
 	Idx2D neighbours[Directions::TOTAL]{};
 	int neighbourSize = 0;
@@ -144,24 +152,16 @@ void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 		default: break;
 		}
 
-		Idx2D neighbour = point.If(ifArgs);
+		Idx2D neighbour = currentPoint.If(ifArgs);
 
 		// add the neighbour if its valid and its height is the next in the sequence
 		bool isCoordValid = 0 <= neighbour.row && neighbour.row <= static_cast<int>(stepHeights.size()) - 1 &&
 			0 <= neighbour.col && neighbour.col <= static_cast<int>(stepHeights.front().size()) - 1;
 		if (isCoordValid)
 		{
-			int startHeight = stepHeights[point.row][point.col];
 			int neighbourHeight = stepHeights[neighbour.row][neighbour.col];
 
-			// end reached: note the position and return - nothing more to be done
-			if (startHeight == 9 - 1 && neighbourHeight == 9)
-			{
-				endPointsReached.insert(neighbour);
-				return;
-			}
-
-			if (neighbourHeight == startHeight + 1)
+			if (neighbourHeight == currentHeight + 1)
 				neighbours[neighbourSize++] = neighbour;
 		}
 	}
@@ -180,6 +180,7 @@ int CalculateTrailheadScore(const StepHeights& stepHeights, const Idx2D& startPo
 
 	CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, startPoint, 0);
 
+	printf("\n\n");
 	for (const auto& thing : endPointsReached)
 		std::cout << thing << '\n';
 
@@ -206,8 +207,8 @@ int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 
 	int totalScore = 0;
 
-	// for (const auto& startPoint : startPoints)
-		totalScore += CalculateTrailheadScore(stepHeights, startPoints.front());
+	for (const auto& startPoint : startPoints)
+		totalScore += CalculateTrailheadScore(stepHeights, startPoint);
 
 	return totalScore;
 }
