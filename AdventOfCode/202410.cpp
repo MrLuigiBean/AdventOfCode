@@ -345,6 +345,7 @@ int CalculateTrailheadRating(const StepHeights& stepHeights, const Idx2D& startP
 	printf("\n\n");
 	for (const auto& thing : uniqueTrails)
 		std::cout << thing << '\n';
+	printf("^size: %zu\n", uniqueTrails.size());
 
 	return uniqueTrails.size();
 }
