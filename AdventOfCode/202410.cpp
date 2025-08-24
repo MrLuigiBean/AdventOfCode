@@ -40,11 +40,17 @@ struct Idx2D
 	/// @param col_ The value of col.
 	Idx2D(int row_, int col_) : row{ row_ }, col{ col_ } {}
 
+	/// @brief Checks the equality of this object and the other.
+	/// @param other The other object to compare to.
+	/// @return true if this object's row and col are the same as the other's.
 	inline bool operator==(const Idx2D& other)
 	{
 		return col == other.col && row == other.row;
 	}
 
+	/// @brief Compares two objects using their row and col.
+	/// @param other The other object to compare to.
+	/// @return true if this object's row is lesser than the other. When tied, col is compared.
 	inline bool operator<(const Idx2D& other) const
 	{
 		// if (row == other.row)
@@ -124,6 +130,10 @@ bool ReadDataFromFile(const std::string& filename, StepHeights& stepHeights)
 	return true;
 }
 
+/// @brief Recursively iterates through the height data to find complete trails.
+/// @param stepHeights The grid of height data.
+/// @param endPointsReached The set of all unique end points reached by this trail.
+/// @param currentPoint The current point being considered.
 void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint)
 {
@@ -152,6 +162,7 @@ void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 		Idx2D neighbour = currentPoint.If(ifArgs);
 
 		// add the neighbour if its valid and its height is the next in the sequence
+
 		bool isCoordValid = 0 <= neighbour.row && neighbour.row <= static_cast<int>(stepHeights.size()) - 1 &&
 			0 <= neighbour.col && neighbour.col <= static_cast<int>(stepHeights.front().size()) - 1;
 
@@ -168,6 +179,10 @@ void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
 		CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, neighbours[i]);
 }
 
+/// @brief Calculates the score of a trailhead.
+/// @param stepHeights The grid of height data.
+/// @param startPoint The beginning of the trailhead.
+/// @return The trailhead's score.
 int CalculateTrailheadScore(const StepHeights& stepHeights, const Idx2D& startPoint)
 {
 	std::set<Idx2D> endPointsReached;
@@ -177,6 +192,9 @@ int CalculateTrailheadScore(const StepHeights& stepHeights, const Idx2D& startPo
 	return endPointsReached.size();
 }
 
+/// @brief Calculates the total sum of all trailhead scores.
+/// @param stepHeights The grid of height data.
+/// @return The sum of all trailhead scores.
 int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 {
 	std::vector<Idx2D> startPoints; // initializing trailheads
@@ -188,6 +206,7 @@ int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 				startPoints.emplace_back(i, j);
 		}
 	}
+	startPoints.shrink_to_fit();
 
 	int totalScore = 0;
 
@@ -197,7 +216,7 @@ int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 	return totalScore;
 }
 
-/// @brief
+/// @brief This program computes the total trailhead score from a file with height data.
 int main(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
