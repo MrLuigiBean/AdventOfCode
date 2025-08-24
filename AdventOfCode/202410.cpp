@@ -244,8 +244,118 @@ int main_01(int argc, char* argv[])
 
 #pragma endregion
 
+#pragma region Part 2
+
+void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights,
+	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint)
+{
+	int currentHeight = stepHeights[currentPoint.row][currentPoint.col];
+
+	if (currentHeight == 9)
+	{
+		endPointsReached.insert(currentPoint);
+		return;
+	}
+
+	Idx2D neighbours[Directions::TOTAL]{};
+	int neighbourSize = 0;
+	for (int i = 0; i < Directions::TOTAL; ++i)
+	{
+		Idx2D::IfArgs ifArgs;
+		switch (i)
+		{
+		case Directions::NORTH: ifArgs.modRow = -1; break;
+		case Directions::WEST:  ifArgs.modCol = -1; break;
+		case Directions::EAST:  ifArgs.modCol = +1; break;
+		case Directions::SOUTH: ifArgs.modRow = +1; break;
+		default: break;
+		}
+
+		Idx2D neighbour = currentPoint.If(ifArgs);
+
+		// add the neighbour if its valid and its height is the next in the sequence
+
+		bool isCoordValid = 0 <= neighbour.row && neighbour.row <= static_cast<int>(stepHeights.size()) - 1 &&
+			0 <= neighbour.col && neighbour.col <= static_cast<int>(stepHeights.front().size()) - 1;
+
+		if (isCoordValid)
+		{
+			int neighbourHeight = stepHeights[neighbour.row][neighbour.col];
+
+			if (neighbourHeight == currentHeight + 1)
+				neighbours[neighbourSize++] = neighbour;
+		}
+	}
+
+	for (int i = 0; i < neighbourSize; ++i)
+		CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, neighbours[i]);
+}
+
+/// @brief Calculates the rating of a trailhead.
+/// @param stepHeights The grid of height data.
+/// @param startPoint The beginning of the trailhead.
+/// @return The trailhead's rating.
+int CalculateTrailheadRating(const StepHeights& stepHeights, const Idx2D& startPoint)
+{
+	std::set<Idx2D> uniqueTrails;
+
+	CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, startPoint);
+
+	return uniqueTrails.size();
+}
+
+/// @brief Calculates the total sum of all trailhead ratings.
+/// @param stepHeights The grid of height data.
+/// @return The sum of all trailhead ratings.
+int CalculateCombinedTrailheadRating(const StepHeights& stepHeights)
+{
+	std::vector<Idx2D> startPoints; // initializing trailheads
+	for (unsigned i = 0; i < stepHeights.size(); ++i)
+	{
+		for (unsigned j = 0; j < stepHeights[i].size(); ++j)
+		{
+			if (stepHeights[i][j] == 0)
+				startPoints.emplace_back(i, j);
+		}
+	}
+	startPoints.shrink_to_fit();
+
+	int totalRatings = 0;
+
+	for (const auto& startPoint : startPoints)
+		totalRatings += CalculateTrailheadRating(stepHeights, startPoint);
+
+	return totalRatings;
+}
+
+/// @brief This program computes the total trailhead rating from a file with height data.
+int main_02(int argc, char* argv[])
+{
+	constexpr const char* defaultFilename = "small.txt";
+	const char* filename = argc == 2 ? argv[1] : defaultFilename;
+
+	if (argc != 2)
+	{
+		printf("Usage: ./this_program_name some_input_file.txt\n");
+		// return -1;
+		printf("Using default filename %s...\n", defaultFilename);
+	}
+
+	StepHeights stepHeights;
+	if (!ReadDataFromFile(filename, stepHeights))
+		return -1;
+
+	int total = CalculateCombinedTrailheadRating(stepHeights);
+
+	PRINT(total);
+
+	return 0;
+}
+
+#pragma endregion
+
 int main(int argc, char* argv[])
 {
-	return main_01(argc, argv);
-	// return main_02(argc, argv);
+	// return main_01(argc, argv);
+	return main_02(argc, argv);
 }
