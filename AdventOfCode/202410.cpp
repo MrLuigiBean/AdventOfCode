@@ -268,21 +268,11 @@ inline std::ostream& operator<<(std::ostream& stream, const Trail& trail)
 /// @param currentTrail The trail taken to get to currentPoint.
 /// @param currentPoint The current point being considered.
 void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights, std::set<Trail>& uniqueTrails,
-	Trail& currentTrail, const Idx2D& currentPoint, int level)
+	Trail& currentTrail, const Idx2D& currentPoint)
 {
-	for (int i = 0; i < level; ++i) std::cout << ' ';
-	PRINT(currentPoint);
-
 	int currentHeight = stepHeights[currentPoint.row][currentPoint.col];
 
-	for (int i = 0; i < level; ++i) std::cout << ' ';
-	PRINT(currentHeight);
-
 	currentTrail[currentHeight] = currentPoint;
-
-	for (int i = 0; i < level; ++i) std::cout << ' ';
-	PRINT(currentTrail);
-
 
 	if (currentHeight == 9)
 	{
@@ -326,7 +316,7 @@ void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights, std::set<
 	{
 		neighbourTrails[i] = currentTrail;
 		CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails,
-			neighbourTrails[i], neighbours[i], level + 1);
+			neighbourTrails[i], neighbours[i]);
 	}
 }
 
@@ -340,12 +330,7 @@ int CalculateTrailheadRating(const StepHeights& stepHeights, const Idx2D& startP
 
 	Trail startingTrail;
 
-	CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, startingTrail, startPoint, 0);
-
-	printf("\n\n");
-	for (const auto& thing : uniqueTrails)
-		std::cout << thing << '\n';
-	printf("^size: %zu\n", uniqueTrails.size());
+	CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, startingTrail, startPoint);
 
 	return uniqueTrails.size();
 }
