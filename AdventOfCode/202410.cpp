@@ -22,6 +22,51 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 /// @brief Represents the heights of all steps in a given map.
 using StepHeights = std::vector<std::vector<int>>;
 
+/// @brief Indicies (coordinates) for elements in 2D arrays.
+struct Idx2D
+{
+	/// @brief The row of this coordinate.
+	int row = 0;
+
+	/// @brief The column of this coordinate.
+	int col = 0;
+
+	/// @brief Assigns 0 to row and col.
+	Idx2D() = default;
+
+	/// @brief Assignes the row and col of this object.
+	/// @param row_ The value of row.
+	/// @param col_ The value of col.
+	Idx2D(int row_, int col_) : row{ row_ }, col{ col_ } {}
+
+	/// @brief Represents the modifications that can be made to an instance of Idx2D.
+	struct IfArgs
+	{
+		/// @brief The desired modification to the instance's row.
+		int modRow = 0;
+
+		/// @brief The desired modification to the instance's column.
+		int modCol = 0;
+	};
+
+	/// @brief Creates a new Idx2D, which is a copy of this instance with modifications.
+	/// @param args The modifications to apply.
+	/// @return A copy of the instance with the modifications applied.
+	inline Idx2D If(const IfArgs& args) const
+	{
+		return Idx2D(row + args.modRow, col + args.modCol);
+	}
+};
+
+/// @brief Prints a coordinate to a given stream.
+/// @param stream The output stream to print to.
+/// @param coord The coordinates to display using the given stream.
+/// @return The modified stream with the coordinate's information printed.
+inline std::ostream& operator<<(std::ostream& stream, const Idx2D& coord)
+{
+	return stream << '(' << coord.row << ',' << coord.col << ')';
+}
+
 /// @brief Reads and stores information from the file into the given parameter.
 /// @param filename The name of the file to obtain data from.
 /// @param stepHeights The grid of step heights populated from the file.
