@@ -1,3 +1,4 @@
+#include <array>
 #include <fstream>
 #include <iostream>
 #include <set>
@@ -81,10 +82,10 @@ struct Idx2D
 	}
 };
 
-/// @brief Alias for Idx2D
+/// @brief Alias for Idx2D.
 using Index2d = Idx2D;
 
-/// @brief Alias for Idx2D
+/// @brief Alias for Idx2D.
 using Coord = Idx2D;
 
 /// @brief Represents the four cardinal directions.
@@ -246,19 +247,53 @@ int main_01(int argc, char* argv[])
 
 #pragma region Part 2
 
-void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights,
-	std::set<Idx2D>& endPointsReached, const Idx2D& currentPoint)
+/// @brief Represents a path of a trailhead, from heights 0 to 9.
+using Trail = std::array<Coord, 10>;
+
+/// @brief Prints a trail to a given stream.
+/// @param stream The output stream to print to.
+/// @param trail The trail to display using the given stream.
+/// @return The modified stream with the trail's information printed.
+inline std::ostream& operator<<(std::ostream& stream, const Trail& trail)
 {
+	stream << '[';
+	for (unsigned i = 0; i < trail.size(); ++i)
+		stream << trail[i] << ((i < trail.size() - 1) ? "," : "");
+	return stream << ']';
+}
+
+/// @brief Recursively iterates through the height data to find complete trails.
+/// @param stepHeights The grid of height data.
+/// @param uniqueTrails The set of all unique trails possible by this trailhead.
+/// @param currentTrail The trail taken to get to currentPoint.
+/// @param currentPoint The current point being considered.
+void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights, std::set<Trail>& uniqueTrails,
+	Trail& currentTrail, const Idx2D& currentPoint, int level)
+{
+	for (int i = 0; i < level; ++i) std::cout << ' ';
+	PRINT(currentPoint);
+
 	int currentHeight = stepHeights[currentPoint.row][currentPoint.col];
+
+	for (int i = 0; i < level; ++i) std::cout << ' ';
+	PRINT(currentHeight);
+
+	currentTrail[currentHeight] = currentPoint;
+
+	for (int i = 0; i < level; ++i) std::cout << ' ';
+	PRINT(currentTrail);
+
 
 	if (currentHeight == 9)
 	{
-		endPointsReached.insert(currentPoint);
+		uniqueTrails.emplace(currentTrail);
 		return;
 	}
 
 	Idx2D neighbours[Directions::TOTAL]{};
+	Trail neighbourTrails[Directions::TOTAL]{};
 	int neighbourSize = 0;
+
 	for (int i = 0; i < Directions::TOTAL; ++i)
 	{
 		Idx2D::IfArgs ifArgs;
@@ -288,7 +323,11 @@ void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights,
 	}
 
 	for (int i = 0; i < neighbourSize; ++i)
-		CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, neighbours[i]);
+	{
+		neighbourTrails[i] = currentTrail;
+		CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails,
+			neighbourTrails[i], neighbours[i], level + 1);
+	}
 }
 
 /// @brief Calculates the rating of a trailhead.
@@ -297,9 +336,15 @@ void CalculateTrailheadRatingRecursive(const StepHeights& stepHeights,
 /// @return The trailhead's rating.
 int CalculateTrailheadRating(const StepHeights& stepHeights, const Idx2D& startPoint)
 {
-	std::set<Idx2D> uniqueTrails;
+	std::set<Trail> uniqueTrails;
 
-	CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, startPoint);
+	Trail startingTrail;
+
+	CalculateTrailheadRatingRecursive(stepHeights, uniqueTrails, startingTrail, startPoint, 0);
+
+	printf("\n\n");
+	for (const auto& thing : uniqueTrails)
+		std::cout << thing << '\n';
 
 	return uniqueTrails.size();
 }
