@@ -1,5 +1,6 @@
 #include <fstream>
 #include <iostream>
+#include <set>
 #include <string>
 #include <vector>
 
@@ -39,6 +40,22 @@ struct Idx2D
 	/// @param col_ The value of col.
 	Idx2D(int row_, int col_) : row{ row_ }, col{ col_ } {}
 
+	inline bool operator==(const Idx2D& other)
+	{
+		return col == other.col && row == other.row;
+	}
+
+	inline bool operator<(const Idx2D& other) const
+	{
+		// if (row == other.row)
+		// 	return col < other.col;
+		// else
+		// 	return row < other.row;
+
+		// ^ same as this v
+		return (row == other.row) ? (col < other.col) : (row < other.row);
+	}
+
 	/// @brief Represents the modifications that can be made to an instance of Idx2D.
 	struct IfArgs
 	{
@@ -57,6 +74,15 @@ struct Idx2D
 		return Idx2D(row + args.modRow, col + args.modCol);
 	}
 };
+
+/// @brief Alias for Idx2D
+using Index2d = Idx2D;
+
+/// @brief Alias for Idx2D
+using Coord = Idx2D;
+
+/// @brief Represents the four cardinal directions.
+struct Directions { enum { NORTH, WEST, EAST, SOUTH, TOTAL }; };
 
 /// @brief Prints a coordinate to a given stream.
 /// @param stream The output stream to print to.
@@ -98,6 +124,94 @@ bool ReadDataFromFile(const std::string& filename, StepHeights& stepHeights)
 	return true;
 }
 
+void CalculateTrailheadScoreRecursive(const StepHeights& stepHeights,
+	std::set<Idx2D>& endPointsReached, const Idx2D& point, int level)
+{
+	for (int i = 0; i < level; ++i) std::cout << ' ';
+	PRINT(point);
+
+	Idx2D neighbours[Directions::TOTAL]{};
+	int neighbourSize = 0;
+	for (int i = 0; i < Directions::TOTAL; ++i)
+	{
+		Idx2D::IfArgs ifArgs;
+		switch (i)
+		{
+		case Directions::NORTH: ifArgs.modRow = -1; break;
+		case Directions::WEST:  ifArgs.modCol = -1; break;
+		case Directions::EAST:  ifArgs.modCol = +1; break;
+		case Directions::SOUTH: ifArgs.modRow = +1; break;
+		default: break;
+		}
+
+		Idx2D neighbour = point.If(ifArgs);
+
+		// add the neighbour if its valid and its height is the next in the sequence
+		bool isCoordValid = 0 <= neighbour.row && neighbour.row <= static_cast<int>(stepHeights.size()) - 1 &&
+			0 <= neighbour.col && neighbour.col <= static_cast<int>(stepHeights.front().size()) - 1;
+		if (isCoordValid)
+		{
+			int startHeight = stepHeights[point.row][point.col];
+			int neighbourHeight = stepHeights[neighbour.row][neighbour.col];
+
+			// end reached: note the position and return - nothing more to be done
+			if (startHeight == 9 - 1 && neighbourHeight == 9)
+			{
+				endPointsReached.insert(neighbour);
+				return;
+			}
+
+			if (neighbourHeight == startHeight + 1)
+				neighbours[neighbourSize++] = neighbour;
+		}
+	}
+
+	for (int i = 0; i < neighbourSize; ++i)
+	{
+		for (int i = 0; i < level; ++i) std::cout << ' ';
+		std::cout << neighbours[i] << '\n';
+		CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, neighbours[i], level + 1);
+	}
+}
+
+int CalculateTrailheadScore(const StepHeights& stepHeights, const Idx2D& startPoint)
+{
+	std::set<Idx2D> endPointsReached;
+
+	CalculateTrailheadScoreRecursive(stepHeights, endPointsReached, startPoint, 0);
+
+	for (const auto& thing : endPointsReached)
+		std::cout << thing << '\n';
+
+	return endPointsReached.size();
+}
+
+int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
+{
+	// PRINT(stepHeights); vvv
+	for (const auto& vec : stepHeights)
+		std::cout << vec << '\n';
+
+	std::vector<Idx2D> startPoints; // initializing trailheads
+	for (unsigned i = 0; i < stepHeights.size(); ++i)
+	{
+		for (unsigned j = 0; j < stepHeights[i].size(); ++j)
+		{
+			if (stepHeights[i][j] == 0)
+				startPoints.emplace_back(i, j);
+		}
+	}
+
+	PRINT(startPoints);
+
+	int totalScore = 0;
+
+	// for (const auto& startPoint : startPoints)
+		totalScore += CalculateTrailheadScore(stepHeights, startPoints.front());
+
+	return totalScore;
+}
+
 /// @brief
 int main(int argc, char* argv[])
 {
@@ -115,9 +229,9 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, stepHeights))
 		return -1;
 
-	PRINT(stepHeights);
+	int total = CalculateCombinedTrailheadScore(stepHeights);
 
-	printf("Hello world!\n");
+	PRINT(total);
 
 	return 0;
 }
