@@ -130,6 +130,8 @@ bool ReadDataFromFile(const std::string& filename, StepHeights& stepHeights)
 	return true;
 }
 
+#pragma region Part 1
+
 /// @brief Recursively iterates through the height data to find complete trails.
 /// @param stepHeights The grid of height data.
 /// @param endPointsReached The set of all unique end points reached by this trail.
@@ -217,7 +219,7 @@ int CalculateCombinedTrailheadScore(const StepHeights& stepHeights)
 }
 
 /// @brief This program computes the total trailhead score from a file with height data.
-int main(int argc, char* argv[])
+int main_01(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
 	const char* filename = argc == 2 ? argv[1] : defaultFilename;
@@ -238,4 +240,12 @@ int main(int argc, char* argv[])
 	PRINT(total);
 
 	return 0;
+}
+
+#pragma endregion
+
+int main(int argc, char* argv[])
+{
+	return main_01(argc, argv);
+	// return main_02(argc, argv);
 }
