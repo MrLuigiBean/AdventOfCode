@@ -19,6 +19,67 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
+int NumberOfDigits(int number)
+{
+	int digits = 0;
+	do { ++digits; } while (number /= 10);
+	return digits;
+}
+
+int Pow(int base, int power)
+{
+	int result = 1;
+	while (power--)
+		result *= base;
+	return result;
+}
+
+void Iterate(std::vector<int>& numbers, int iterations)
+{
+	while (iterations--)
+	{
+		PRINT(numbers);
+
+		struct Yeah { int pos, number; };
+		std::vector<Yeah> insertions; // save insertions for after this loop completes
+
+		for (unsigned i = 0; i < numbers.size(); ++i)
+		{
+			// rule 1: zeroes become ones
+			if (numbers[i] == 0)
+			{
+				numbers[i] = 1;
+				continue;
+			}
+
+			// rule 2: split number when digits are even
+			if (int digits = NumberOfDigits(numbers[i]); digits % 2 == 0)
+			{
+				int secondHalf = 0;
+				for (int secondHalfDigit = 0; secondHalfDigit < (digits / 2); ++secondHalfDigit)
+				{
+					int digit = numbers[i] % 10;
+					secondHalf += digit * Pow(10, secondHalfDigit);
+					numbers[i] /= 10;
+				}
+
+				// at the end, numbers[i] should have the value of firstHalf! :D
+
+				insertions.emplace_back(Yeah{ .pos = static_cast<int>(i) + 1, .number = secondHalf });
+
+				continue;
+			}
+
+			// default rule
+			numbers[i] *= 2024;
+		}
+
+		// do insertions here (in reverse!!!)
+		for (int i = insertions.size() - 1; i >= 0; --i)
+			numbers.insert(numbers.begin() + insertions[i].pos, insertions[i].number);
+	}
+}
+
 /// @brief Reads and numbers from the file.
 /// @param filename The name of the file to obtain data from.
 /// @param numbers The numbers read in from the file.
@@ -56,7 +117,10 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, numbers))
 		return -1;
 
+	Iterate(numbers, 25);
+
 	PRINT(numbers);
+	PRINT(numbers.size());
 
 	return 0;
 }
