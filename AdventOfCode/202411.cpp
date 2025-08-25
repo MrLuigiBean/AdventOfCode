@@ -59,9 +59,8 @@ void Iterate(std::vector<BigNumber>& numbers, int iterations)
 
 	while (iterations--)
 	{
-		PRINT(numbers);
-
 		insertions.clear();
+
 		for (unsigned i = 0; i < numbers.size(); ++i)
 		{
 			// rule 1: zeroes become ones
@@ -138,10 +137,7 @@ int main(int argc, char* argv[])
 
 	Iterate(numbers, 25);
 
-	PRINT(numbers);
 	PRINT(numbers.size());
-
-	// damn, 228429 is too high...
 
 	return 0;
 }
