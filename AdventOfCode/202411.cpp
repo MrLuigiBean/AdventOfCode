@@ -19,10 +19,11 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
-/// @brief Reads and stores information from the file into the given Grid.
+/// @brief Reads and numbers from the file.
 /// @param filename The name of the file to obtain data from.
+/// @param numbers The numbers read in from the file.
 /// @return true on success, false otherwise.
-bool ReadDataFromFile(const std::string& filename)
+bool ReadDataFromFile(const std::string& filename, std::vector<int>& numbers)
 {
 	std::fstream file(filename);
 	if (!file)
@@ -30,6 +31,10 @@ bool ReadDataFromFile(const std::string& filename)
 		printf("sorry %s isn't a file\n", filename.c_str());
 		return false;
 	}
+
+	int number;
+	while (file >> number)
+		numbers.emplace_back(number);
 
 	return true;
 }
@@ -47,10 +52,11 @@ int main(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
-	if (!ReadDataFromFile(filename))
+	std::vector<int> numbers;
+	if (!ReadDataFromFile(filename, numbers))
 		return -1;
 
-	printf("Hello world!\n");
+	PRINT(numbers);
 
 	return 0;
 }
