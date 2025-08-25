@@ -19,10 +19,13 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
+/// @brief A type used to represent very large integers.
+using BigNumber = unsigned long long;
+
 /// @brief Determines the number of digits an integer has.
 /// @param number The integer to query.
 /// @return The number of digits in the given integer.
-int NumberOfDigits(int number)
+int NumberOfDigits(BigNumber number)
 {
 	int digits = 0;
 	do { ++digits; } while (number /= 10);
@@ -33,9 +36,9 @@ int NumberOfDigits(int number)
 /// @param base The base to use in exponentiation.
 /// @param power The exponent to raise base to.
 /// @return Returns base ^ power.
-int Pow(int base, int power)
+BigNumber Pow(BigNumber base, BigNumber power)
 {
-	int result = 1;
+	BigNumber result = 1;
 	while (power--)
 		result *= base;
 	return result;
@@ -44,9 +47,14 @@ int Pow(int base, int power)
 /// @brief Follows three rules on a line of rocks with numbers.
 /// @param numbers The numbers written on the line of rocks.
 /// @param iterations The number of 'blinks' that happen.
-void Iterate(std::vector<int>& numbers, int iterations)
+void Iterate(std::vector<BigNumber>& numbers, int iterations)
 {
-	struct Insertion { int pos, number; Insertion(int a, int b) : pos{ a }, number{ b } {} };
+	struct Insertion
+	{
+		BigNumber pos, number;
+		Insertion(BigNumber pos_, BigNumber number_) : pos{ pos_ }, number{ number_ } {}
+	};
+
 	std::vector<Insertion> insertions; // save insertions for after this loop completes
 
 	while (iterations--)
@@ -66,7 +74,7 @@ void Iterate(std::vector<int>& numbers, int iterations)
 			// rule 2: split number when digits are even
 			if (int digits = NumberOfDigits(numbers[i]); digits % 2 == 0)
 			{
-				int secondHalf = 0;
+				BigNumber secondHalf = 0;
 				for (int secondHalfDigit = 0; secondHalfDigit < (digits / 2); ++secondHalfDigit)
 				{
 					int digit = numbers[i] % 10;
@@ -76,7 +84,7 @@ void Iterate(std::vector<int>& numbers, int iterations)
 
 				// at the end, numbers[i] should have the value of firstHalf! :D
 
-				insertions.emplace_back(static_cast<int>(i) + 1, secondHalf);
+				insertions.emplace_back(i + 1, secondHalf);
 
 				continue;
 			}
@@ -95,7 +103,7 @@ void Iterate(std::vector<int>& numbers, int iterations)
 /// @param filename The name of the file to obtain data from.
 /// @param numbers The numbers read in from the file.
 /// @return true on success, false otherwise.
-bool ReadDataFromFile(const std::string& filename, std::vector<int>& numbers)
+bool ReadDataFromFile(const std::string& filename, std::vector<BigNumber>& numbers)
 {
 	std::fstream file(filename);
 	if (!file)
@@ -104,7 +112,7 @@ bool ReadDataFromFile(const std::string& filename, std::vector<int>& numbers)
 		return false;
 	}
 
-	int number;
+	BigNumber number;
 	while (file >> number)
 		numbers.emplace_back(number);
 
@@ -124,7 +132,7 @@ int main(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
-	std::vector<int> numbers;
+	std::vector<BigNumber> numbers;
 	if (!ReadDataFromFile(filename, numbers))
 		return -1;
 
