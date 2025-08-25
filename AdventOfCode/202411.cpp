@@ -19,6 +19,9 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 	return stream << ']';
 }
 
+/// @brief Determines the number of digits an integer has.
+/// @param number The integer to query.
+/// @return The number of digits in the given integer.
 int NumberOfDigits(int number)
 {
 	int digits = 0;
@@ -26,6 +29,10 @@ int NumberOfDigits(int number)
 	return digits;
 }
 
+/// @brief Computes base ^ power.
+/// @param base The base to use in exponentiation.
+/// @param power The exponent to raise base to.
+/// @return Returns base ^ power.
 int Pow(int base, int power)
 {
 	int result = 1;
@@ -34,15 +41,19 @@ int Pow(int base, int power)
 	return result;
 }
 
+/// @brief Follows three rules on a line of rocks with numbers.
+/// @param numbers The numbers written on the line of rocks.
+/// @param iterations The number of 'blinks' that happen.
 void Iterate(std::vector<int>& numbers, int iterations)
 {
+	struct Insertion { int pos, number; Insertion(int a, int b) : pos{ a }, number{ b } {} };
+	std::vector<Insertion> insertions; // save insertions for after this loop completes
+
 	while (iterations--)
 	{
 		PRINT(numbers);
 
-		struct Yeah { int pos, number; };
-		std::vector<Yeah> insertions; // save insertions for after this loop completes
-
+		insertions.clear();
 		for (unsigned i = 0; i < numbers.size(); ++i)
 		{
 			// rule 1: zeroes become ones
@@ -65,7 +76,7 @@ void Iterate(std::vector<int>& numbers, int iterations)
 
 				// at the end, numbers[i] should have the value of firstHalf! :D
 
-				insertions.emplace_back(Yeah{ .pos = static_cast<int>(i) + 1, .number = secondHalf });
+				insertions.emplace_back(static_cast<int>(i) + 1, secondHalf);
 
 				continue;
 			}
@@ -100,7 +111,7 @@ bool ReadDataFromFile(const std::string& filename, std::vector<int>& numbers)
 	return true;
 }
 
-/// @brief
+/// @brief Calculates the number of rocks after blinking.
 int main(int argc, char* argv[])
 {
 	constexpr const char* defaultFilename = "small.txt";
@@ -121,6 +132,8 @@ int main(int argc, char* argv[])
 
 	PRINT(numbers);
 	PRINT(numbers.size());
+
+	// damn, 228429 is too high...
 
 	return 0;
 }
