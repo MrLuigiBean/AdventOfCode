@@ -135,7 +135,7 @@ int main(int argc, char* argv[])
 	if (!ReadDataFromFile(filename, numbers))
 		return -1;
 
-	Iterate(numbers, 25);
+	Iterate(numbers, 75);
 
 	PRINT(numbers.size());
 
