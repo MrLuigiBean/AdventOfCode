@@ -1,3 +1,4 @@
+#include <forward_list>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -21,6 +22,16 @@ inline std::ostream& operator<<(std::ostream& stream, const std::vector<T>& vec)
 
 /// @brief A type used to represent very large integers.
 using BigNumber = unsigned long long;
+
+using Container = std::forward_list<BigNumber>;
+
+inline std::ostream& operator<<(std::ostream& stream, const Container& list)
+{
+	stream << '[';
+	for (Container::const_iterator it = list.begin(); it != list.end(); ++it)
+		stream << *it << (std::next(it) != list.end() ? "," : "");
+	return stream << ']';
+}
 
 /// @brief Determines the number of digits an integer has.
 /// @param number The integer to query.
@@ -47,54 +58,60 @@ BigNumber Pow(BigNumber base, BigNumber power)
 /// @brief Follows three rules on a line of rocks with numbers.
 /// @param numbers The numbers written on the line of rocks.
 /// @param iterations The number of 'blinks' that happen.
-void Iterate(std::vector<BigNumber>& numbers, int iterations)
+void Iterate(Container& numbers, int iterations)
 {
 	struct Insertion
 	{
-		BigNumber pos, number;
-		Insertion(BigNumber pos_, BigNumber number_) : pos{ pos_ }, number{ number_ } {}
+		Container::iterator pos;
+		BigNumber number;
+		Insertion(Container::iterator pos_, BigNumber number_) : pos{ pos_ }, number{ number_ } {}
 	};
 
 	std::vector<Insertion> insertions; // save insertions for after this loop completes
 
 	while (iterations--)
 	{
+		PRINT(iterations);
+
+		// PRINT(numbers);
+
 		insertions.clear();
 
-		for (unsigned i = 0; i < numbers.size(); ++i)
+		for (Container::iterator it = numbers.begin(); it != numbers.end(); ++it)
 		{
+			BigNumber& number = *it;
+
 			// rule 1: zeroes become ones
-			if (numbers[i] == 0)
+			if (number == 0)
 			{
-				numbers[i] = 1;
+				number = 1;
 				continue;
 			}
 
 			// rule 2: split number when digits are even
-			if (int digits = NumberOfDigits(numbers[i]); digits % 2 == 0)
+			if (int digits = NumberOfDigits(number); digits % 2 == 0)
 			{
 				BigNumber secondHalf = 0;
 				for (int secondHalfDigit = 0; secondHalfDigit < (digits / 2); ++secondHalfDigit)
 				{
-					int digit = numbers[i] % 10;
+					int digit = number % 10;
 					secondHalf += digit * Pow(10, secondHalfDigit);
-					numbers[i] /= 10;
+					number /= 10;
 				}
 
 				// at the end, numbers[i] should have the value of firstHalf! :D
 
-				insertions.emplace_back(i + 1, secondHalf);
+				insertions.emplace_back(it, secondHalf);
 
 				continue;
 			}
 
 			// default rule
-			numbers[i] *= 2024;
+			number *= 2024;
 		}
 
-		// do insertions here (in reverse!!!)
-		for (int i = insertions.size() - 1; i >= 0; --i)
-			numbers.insert(numbers.begin() + insertions[i].pos, insertions[i].number);
+		for (const auto& item : insertions)
+			numbers.insert_after(item.pos, item.number);
 	}
 }
 
@@ -102,7 +119,7 @@ void Iterate(std::vector<BigNumber>& numbers, int iterations)
 /// @param filename The name of the file to obtain data from.
 /// @param numbers The numbers read in from the file.
 /// @return true on success, false otherwise.
-bool ReadDataFromFile(const std::string& filename, std::vector<BigNumber>& numbers)
+bool ReadDataFromFile(const std::string& filename, Container& numbers)
 {
 	std::fstream file(filename);
 	if (!file)
@@ -112,8 +129,11 @@ bool ReadDataFromFile(const std::string& filename, std::vector<BigNumber>& numbe
 	}
 
 	BigNumber number;
+	std::vector<BigNumber> temp;
 	while (file >> number)
-		numbers.emplace_back(number);
+		temp.emplace_back(number);
+
+	numbers = Container(temp.begin(), temp.end());
 
 	return true;
 }
@@ -131,13 +151,19 @@ int main(int argc, char* argv[])
 		printf("Using default filename %s...\n", defaultFilename);
 	}
 
-	std::vector<BigNumber> numbers;
+	Container numbers;
 	if (!ReadDataFromFile(filename, numbers))
 		return -1;
 
 	Iterate(numbers, 75);
 
-	PRINT(numbers.size());
+	// PRINT(numbers);
+
+	BigNumber size = 0;
+	for (Container::iterator it = numbers.begin(); it != numbers.end(); ++it)
+		++size;
+
+	PRINT(size);
 
 	return 0;
 }
